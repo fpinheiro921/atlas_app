@@ -40,7 +40,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStartOnboarding }) =
                 </p>
                 <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
                     <Button onClick={onStartOnboarding} size="lg">
-                        Start Your 7-Day Free Trial
+                        Sign in with Google
                     </Button>
                 </div>
             </div>
@@ -148,7 +148,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStartOnboarding }) =
             </div>
             <div className="mt-20 text-center">
                  <Button onClick={onStartOnboarding} size="lg">
-                    Start My Transformation
+                    Sign in with Google
                 </Button>
             </div>
         </div>
