@@ -1,19 +1,22 @@
 import React, { useRef } from 'react';
 import { ThemeToggle } from './ThemeToggle';
 import type { AppView } from '../types';
+import type { User } from 'firebase/auth';
 
 interface HeaderProps {
+    user: User | null;
     onSave: () => void;
     onLoad: (event: React.ChangeEvent<HTMLInputElement>) => void;
     onOpenLibrary: () => void;
     onOpenSupplementLibrary: () => void;
     onNavigate: (view: AppView) => void;
     onReset: () => void;
+    onSignOut: () => void;
 }
 
 const buttonClasses = "flex items-center justify-center w-12 h-12 rounded-lg transition-colors duration-200 bg-slate-200/50 text-slate-800 hover:bg-slate-300/80 dark:bg-slate-800/50 dark:text-slate-200 dark:hover:bg-slate-700/80";
 
-export const Header: React.FC<HeaderProps> = ({ onSave, onLoad, onOpenLibrary, onOpenSupplementLibrary, onNavigate, onReset }) => {
+export const Header: React.FC<HeaderProps> = ({ user, onSave, onLoad, onOpenLibrary, onOpenSupplementLibrary, onNavigate, onReset, onSignOut }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleLoadClick = () => {
@@ -59,6 +62,11 @@ export const Header: React.FC<HeaderProps> = ({ onSave, onLoad, onOpenLibrary, o
              <button onClick={onReset} title="Reset & Start Over" aria-label="Reset all app data and start over" className={`${buttonClasses} mt-2`}>
                 <span className="material-symbols-outlined">restart_alt</span>
             </button>
+            {user && (
+                <button onClick={onSignOut} title="Sign Out" aria-label="Sign Out" className={`${buttonClasses} mt-2`}>
+                    <span className="material-symbols-outlined">logout</span>
+                </button>
+            )}
              <input
               type="file"
               ref={fileInputRef}
