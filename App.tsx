@@ -9,7 +9,6 @@ import { OnboardingWizard } from './components/OnboardingWizard';
 import { Dashboard } from './components/Dashboard';
 import { Card } from './components/Card';
 import { Spinner } from './components/Spinner';
-import { useAuth } from './hooks/useAuth';
 import { useTheme } from './hooks/useTheme';
 import { PlanGenerationLoader } from './components/PlanGenerationLoader';
 import { EducationModal } from './components/EducationModal';
@@ -51,8 +50,25 @@ const ErrorDisplay: React.FC<{ message: string; onRetry: () => void }> = ({ mess
 const APP_VERSION = 2;
 const LOCAL_STORAGE_KEY = 'atlas-save-data-v2';
 
+const emptySaveData: SaveData = {
+    isOnboarded: false,
+    onboardingData: null,
+    checkInData: null,
+    history: [],
+    planOverview: null,
+    planSources: null,
+    readArticleIds: [],
+    trainingPlan: null,
+    workoutLogs: [],
+    loggedMeals: [],
+    mealPlan: null,
+    dailyTip: null,
+    savedRecipes: [],
+    progressPhotos: [],
+};
+
+
 const App: React.FC = () => {
-  const { user, isLoading: isAuthLoading, error: authError, signIn, signOut } = useAuth();
   const [view, setView] = useState<AppView>('landing');
   const [status, setStatus] = useState<AppStatus>('idle');
   const [onboardingData, setOnboardingData] = useState<OnboardingData | null>(null);
@@ -106,79 +122,71 @@ const App: React.FC = () => {
   const [isGoalSwitcherOpen, setIsGoalSwitcherOpen] = useState(false);
 
   useTheme();
-
-  const handleSignOut = () => {
-    signOut();
-    setView('landing');
-    // Clear all local data on sign out
-    localStorage.removeItem(LOCAL_STORAGE_KEY);
-    setOnboardingData(null);
-    setCheckInData(null);
-    setHistory([]);
-    setCurrentRecommendation(null);
-    setError(null);
-    setLastCheckInData(null);
-    setPlanOverview(null);
-    setPlanSources(null);
-    setTrainingPlan(null);
-    setMealPlan(null);
-    setSavedRecipes([]);
-    setReadArticleIds(new Set());
-    setWorkoutLogs([]);
-    setLoggedMeals([]);
-    setProgressPhotos([]);
-    setDailyTip(null);
-    setChatSession(null);
-    setChatMessages([]);
-  };
   
   const handleResetApp = useCallback(() => {
     if (window.confirm("Are you sure you want to reset all your data? This will clear your entire history and plan.")) {
-        handleSignOut();
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+        // Manually reset all state to navigate to the landing page without a full reload, which is more robust.
+        setView('landing');
+        setStatus('idle');
+        setOnboardingData(null);
+        setCheckInData(null);
+        setHistory([]);
+        setCurrentRecommendation(null);
+        setError(null);
+        setLastCheckInData(null);
+        setPlanOverview(null);
+        setPlanSources(null);
+        setTrainingPlan(null);
+        setMealPlan(null);
+        setSavedRecipes([]);
+        setReadArticleIds(new Set());
+        setWorkoutLogs([]);
+        setLoggedMeals([]);
+        setProgressPhotos([]);
+        setDailyTip(null);
+        setChatSession(null);
+        setChatMessages([]);
     }
-  }, [signOut]);
+  }, []);
 
   // Load from Local Storage on initial mount
   useEffect(() => {
-    if (user) {
-        try {
-            const savedDataString = localStorage.getItem(`${LOCAL_STORAGE_KEY}-${user.uid}`);
-            if (savedDataString) {
-                const saveData = JSON.parse(savedDataString);
-                if (isSaveData(saveData)) {
-                    setOnboardingData(saveData.onboardingData);
-                    setCheckInData(saveData.checkInData);
-                    setHistory(saveData.history);
-                    setPlanOverview(saveData.planOverview);
-                    setPlanSources(saveData.planSources);
-                    setReadArticleIds(new Set(saveData.readArticleIds));
-                    setTrainingPlan(saveData.trainingPlan);
-                    setWorkoutLogs(saveData.workoutLogs || []);
-                    setLoggedMeals(saveData.loggedMeals || []);
-                    setMealPlan(saveData.mealPlan || null);
-                    setDailyTip(saveData.dailyTip || null);
-                    setSavedRecipes(saveData.savedRecipes || []);
-                    setProgressPhotos(saveData.progressPhotos || []);
-                    setView(saveData.isOnboarded ? 'dashboard' : 'onboarding');
-                } else {
-                     setView('landing');
-                }
+    try {
+        const savedDataString = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (savedDataString) {
+            const saveData = JSON.parse(savedDataString);
+            if (isSaveData(saveData)) {
+                setOnboardingData(saveData.onboardingData);
+                setCheckInData(saveData.checkInData);
+                setHistory(saveData.history);
+                setPlanOverview(saveData.planOverview);
+                setPlanSources(saveData.planSources);
+                setReadArticleIds(new Set(saveData.readArticleIds));
+                setTrainingPlan(saveData.trainingPlan);
+                setWorkoutLogs(saveData.workoutLogs || []);
+                setLoggedMeals(saveData.loggedMeals || []);
+                setMealPlan(saveData.mealPlan || null);
+                setDailyTip(saveData.dailyTip || null);
+                setSavedRecipes(saveData.savedRecipes || []);
+                setProgressPhotos(saveData.progressPhotos || []);
+                setView(saveData.isOnboarded ? 'dashboard' : 'onboarding');
             } else {
-                setView(onboardingData ? 'dashboard' : 'onboarding');
+                 setView('landing');
             }
-        } catch (e) {
-            console.error("Failed to load data from local storage", e);
+        } else {
             setView('landing');
         }
-    } else {
+    } catch (e) {
+        console.error("Failed to load data from local storage", e);
         setView('landing');
     }
     isInitialLoad.current = false;
-  }, [user, onboardingData]);
+  }, []);
 
   // Save to Local Storage whenever critical data changes
   useEffect(() => {
-    if (isInitialLoad.current || !user) return;
+    if (isInitialLoad.current) return;
     
     const saveData: SaveData = {
       version: APP_VERSION,
@@ -199,11 +207,11 @@ const App: React.FC = () => {
     };
     
     try {
-        localStorage.setItem(`${LOCAL_STORAGE_KEY}-${user.uid}`, JSON.stringify(saveData));
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(saveData));
     } catch (err) {
         console.error("Error saving data to Local Storage:", err);
     }
-  }, [user, onboardingData, checkInData, history, planOverview, planSources, readArticleIds, trainingPlan, workoutLogs, loggedMeals, mealPlan, dailyTip, savedRecipes, progressPhotos, view]);
+  }, [onboardingData, checkInData, history, planOverview, planSources, readArticleIds, trainingPlan, workoutLogs, loggedMeals, mealPlan, dailyTip, savedRecipes, progressPhotos, view]);
   
   const handleOnboardingComplete = useCallback(async (data: OnboardingData) => {
     setError(null);
@@ -639,21 +647,9 @@ const App: React.FC = () => {
   };
 
   const renderContent = () => {
-    if (isAuthLoading) {
-        return <div className="flex justify-center items-center h-screen"><Spinner /></div>;
-    }
-
-    if (authError) {
-        return <ErrorDisplay message={authError} onRetry={signIn} />;
-    }
-
-    if (!user) {
-        return <LandingPage onStartOnboarding={signIn} />;
-    }
-
     switch (view) {
       case 'landing':
-        return <LandingPage onStartOnboarding={signIn} />;
+        return <LandingPage onStartOnboarding={() => setView(onboardingData ? 'dashboard' : 'onboarding')} />;
       case 'onboarding':
         return <OnboardingWizard onComplete={handleOnboardingComplete} error={error} />;
       case 'dashboard':
@@ -751,7 +747,7 @@ const App: React.FC = () => {
     }
   };
   
-  if (!user) {
+  if (view === 'landing') {
       return (
         <main className="w-full min-h-screen">
             {renderContent()}
@@ -767,7 +763,7 @@ const App: React.FC = () => {
             onOpenLibrary={() => setIsEducationLibraryOpen(true)}
             onOpenSupplementLibrary={() => setIsSupplementLibraryOpen(true)}
             onNavigate={setView}
-            onReset={handleSignOut}
+            onReset={handleResetApp}
         />
         <main className="ml-20 p-4 sm:p-6 lg:p-8">
             <div className="max-w-7xl mx-auto">
