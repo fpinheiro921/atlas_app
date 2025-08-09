@@ -1,8 +1,37 @@
 import { db } from './firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import type { OnboardingData, CheckInData, DailyMacros, SaveData } from '../types';
-import { Sex, DietHistory, DietPhase, OnboardingGoal, ReverseDietPace } from '../types';
+import type { OnboardingData, CheckInData, DailyMacros, SaveData, UserSubscription } from '../types';
+import { Sex, DietHistory, DietPhase, OnboardingGoal, ReverseDietPace, AccountStatus } from '../types';
 import { APP_VERSION } from '../App';
+import { createTrialSubscription } from './subscriptionService';
+
+export const createNewUserProfile = async (userId: string, email: string): Promise<SaveData> => {
+  // Initialize subscription with trial
+  const subscription = await createTrialSubscription(userId, email);
+
+  // Create initial user data
+  const initialData: SaveData = {
+    version: APP_VERSION,
+    isOnboarded: false,
+    onboardingData: null,
+    checkInData: null,
+    history: [],
+    planOverview: null,
+    planSources: null,
+    readArticleIds: [],
+    trainingPlan: null,
+    workoutLogs: [],
+    loggedMeals: [],
+    mealPlan: null,
+    dailyTip: null,
+    savedRecipes: [],
+    progressPhotos: [],
+    subscription
+  };
+
+  await saveUserData(userId, initialData);
+  return initialData;
+};
 
 export const saveUserData = async (userId: string, data: SaveData): Promise<void> => {
   try {
@@ -14,7 +43,6 @@ export const saveUserData = async (userId: string, data: SaveData): Promise<void
     // Create a sanitized copy of the data
     const sanitizedData = {
       ...data,
-      trialStartDate: data.trialStartDate || new Date().toISOString(),
       version: APP_VERSION
     };
 
@@ -46,6 +74,10 @@ export const loadUserData = async (userId: string): Promise<SaveData | null> => 
       }
 
       // Add missing fields with default values
+      const now = new Date().toISOString();
+      const trialEndsAt = new Date();
+      trialEndsAt.setDate(trialEndsAt.getDate() + 7);
+      
       const normalizedData: SaveData = {
         version: data.version || 1,
         isOnboarded: data.isOnboarded || false,
@@ -62,7 +94,12 @@ export const loadUserData = async (userId: string): Promise<SaveData | null> => 
         dailyTip: data.dailyTip || null,
         savedRecipes: data.savedRecipes || [],
         progressPhotos: data.progressPhotos || [],
-        trialStartDate: data.trialStartDate || new Date().toISOString()
+        subscription: data.subscription || {
+          accountStatus: AccountStatus.TRIAL,
+          email: '',  // This will be updated in App.tsx when we have the user email
+          trialStartDate: now,
+          trialEndsAt: trialEndsAt.toISOString()
+        }
       };
 
       return normalizedData;
