@@ -34,6 +34,7 @@ import { RecipeView } from './components/RecipeView';
 import { MonthlyReviewModal } from './components/MonthlyReviewModal';
 import { WorkoutReviewModal } from './components/WorkoutReviewModal';
 import { GoalSwitcherModal } from './components/GoalSwitcherModal';
+import { saveUserDataToFirestore, loadUserDataFromFirestore } from './services/userFirestoreService';
 
 const ErrorDisplay: React.FC<{ message: string; onRetry: () => void }> = ({ message, onRetry }) => (
     <Card className="text-center">
@@ -103,6 +104,68 @@ const App: React.FC = () => {
   const [dailyTip, setDailyTip] = useState<DailyCoachingTip | null>(null);
   const [isTipLoading, setIsTipLoading] = useState(false);
 
+  // Firestore data sync
+  useEffect(() => {
+    if (user) {
+      const loadData = async () => {
+        setStatus('loading');
+        try {
+          const data = await loadUserDataFromFirestore(user.uid);
+          if (data) {
+            setOnboardingData(data.onboardingData);
+            setCheckInData(data.checkInData);
+            setHistory(data.history);
+            setPlanOverview(data.planOverview);
+            setPlanSources(data.planSources);
+            setReadArticleIds(new Set(data.readArticleIds));
+            setTrainingPlan(data.trainingPlan);
+            setWorkoutLogs(data.workoutLogs || []);
+            setLoggedMeals(data.loggedMeals || []);
+            setMealPlan(data.mealPlan || null);
+            setDailyTip(data.dailyTip || null);
+            setSavedRecipes(data.savedRecipes || []);
+            setProgressPhotos(data.progressPhotos || []);
+            setView(data.isOnboarded ? 'dashboard' : 'onboarding');
+          } else {
+            setView('onboarding');
+          }
+        } catch (err) {
+          setError('Could not load your data. Please try again.');
+        } finally {
+          setStatus('idle');
+        }
+      };
+      loadData();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (!isInitialLoad.current && user) {
+      const saveData = async () => {
+        const dataToSave: Omit<SaveData, 'version'> = {
+          isOnboarded: view !== 'onboarding' && view !== 'landing' && !!onboardingData,
+          onboardingData,
+          checkInData,
+          history,
+          planOverview,
+          planSources,
+          readArticleIds: Array.from(readArticleIds),
+          trainingPlan,
+          workoutLogs,
+          loggedMeals,
+          mealPlan,
+          dailyTip,
+          savedRecipes,
+          progressPhotos,
+        };
+        await saveUserDataToFirestore(user.uid, dataToSave);
+      };
+      saveData();
+    } else {
+      isInitialLoad.current = false;
+    }
+  }, [user, view, onboardingData, checkInData, history, planOverview, planSources, readArticleIds, trainingPlan, workoutLogs, loggedMeals, mealPlan, dailyTip, savedRecipes, progressPhotos]);
+  
   // Chat state
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatSession, setChatSession] = useState<Chat | null>(null);
