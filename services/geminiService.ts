@@ -7,11 +7,11 @@ import { calculateInitialPlan, calculateDietBreakPlan } from "./userProfileServi
 import { KB_ENERGY_BALANCE, KB_METABOLIC_ADAPTATION, KB_NUTRITION, KB_FAT_LOSS, KB_REVERSE_DIETING, KB_TRAINING, KB_BEHAVIORAL, KB_EXERCISE_LIBRARY, KB_GOURMET_NUTRITION_RECIPES, KB_LAYNE_NORTON_TRAINING_SPLITS } from "../content/knowledgeBase";
 
 
-if (!process.env.API_KEY) {
-  throw new Error("API_KEY environment variable not set");
+if (!import.meta.env.VITE_API_KEY) {
+  throw new Error("VITE_API_KEY environment variable not set");
 }
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY });
 
 const exerciseSchema = {
     type: Type.OBJECT,
