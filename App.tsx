@@ -127,10 +127,28 @@ const App: React.FC = () => {
   
   const handleResetApp = useCallback(() => {
     if (window.confirm("Are you sure you want to reset all your data? This will clear your entire history and plan.")) {
-        // This will now be handled by the sign out process
-        handleSignOut();
+        setView('onboarding');
+        setStatus('idle');
+        setOnboardingData(null);
+        setCheckInData(null);
+        setHistory([]);
+        setCurrentRecommendation(null);
+        setError(null);
+        setLastCheckInData(null);
+        setPlanOverview(null);
+        setPlanSources(null);
+        setTrainingPlan(null);
+        setMealPlan(null);
+        setSavedRecipes([]);
+        setReadArticleIds(new Set());
+        setWorkoutLogs([]);
+        setLoggedMeals([]);
+        setProgressPhotos([]);
+        setDailyTip(null);
+        setChatSession(null);
+        setChatMessages([]);
     }
-  }, [handleSignOut]);
+  }, []);
   
   const handleOnboardingComplete = useCallback(async (data: OnboardingData) => {
     setError(null);
