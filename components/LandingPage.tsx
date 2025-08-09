@@ -7,7 +7,7 @@ import { MealPlanMockup } from './landing/MealPlanMockup';
 
 
 interface LandingPageProps {
-    onGetStarted: () => void;
+    onStartOnboarding: () => void;
 }
 
 const ValuePropCard: React.FC<{ icon: string; title: string; children: React.ReactNode }> = ({ icon, title, children }) => (
@@ -21,7 +21,7 @@ const ValuePropCard: React.FC<{ icon: string; title: string; children: React.Rea
 );
 
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
+export const LandingPage: React.FC<LandingPageProps> = ({ onStartOnboarding }) => {
   return (
     <div className="w-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-[#0c0c0c] dark:to-[#161616] font-sans text-slate-800 dark:text-slate-200">
       {/* Hero Section */}
@@ -39,8 +39,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                     Stop guessing. Atlas is your AI coach for a complete body transformation. Get a dynamic plan that evolves with you, log meals with your camera, and receive precise adjustments to guarantee you reach your goal—no matter your starting point.
                 </p>
                 <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-                    <Button onClick={onGetStarted} size="lg">
-                        Get Started Now
+                    <Button onClick={onStartOnboarding} size="lg">
+                        Start Your 7-Day Free Trial
                     </Button>
                 </div>
             </div>
@@ -147,7 +147,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                 </ValuePropCard>
             </div>
             <div className="mt-20 text-center">
-                 <Button onClick={onGetStarted} size="lg">
+                 <Button onClick={onStartOnboarding} size="lg">
                     Start My Transformation
                 </Button>
             </div>

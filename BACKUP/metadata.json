@@ -1,8 +1,0 @@
-{
-  "requestFramePermissions": [
-    "camera"
-  ],
-  "name": "Atlas",
-  "description": "Stop guessing. Atlas is your AI coach for a complete body transformation. Get a dynamic plan that evolves with you, log meals with your camera, and receive precise adjustments to guarantee you reach your goal—no matter your starting point.",
-  "prompt": ""
-}
