@@ -16,7 +16,24 @@ export enum DietHistory {
   NONE = 'none',
   INFREQUENT = 'infrequent', // Dieted <1/3 of the last year
   FREQUENT = 'frequent',   // Dieted 1/3 to 2/3 of the last year
-  CHRONIC = 'chronic',     // Dieted >2/3 of the last year
+  CHRONIC = 'chrexport interface SaveData {
+    version?: number;
+    isOnboarded: boolean;
+    onboardingData: OnboardingData | null;
+    checkInData: CheckInData | null;
+    history: CheckInRecord[];
+    planOverview: PlanWeek[] | null;
+    planSources: GroundingSource[] | null;
+    readArticleIds: string[];
+    trainingPlan: TrainingPlan | null;
+    workoutLogs: WorkoutLog[];
+    loggedMeals: DailyMealLog[];
+    mealPlan: MealPlan | null;
+    dailyTip: DailyCoachingTip | null;
+    savedRecipes: Meal[];
+    progressPhotos: ProgressPhoto[];
+    trialStartDate?: string; // ISO string date when the trial started
+}ted >2/3 of the last year
 }
 
 export enum OnboardingGoal {
@@ -377,11 +394,12 @@ export interface SaveData {
     dailyTip: DailyCoachingTip | null;
     savedRecipes?: Meal[];
     progressPhotos?: ProgressPhoto[];
+    trialStartDate?: string; // ISO string date when the trial started
 }
 
 
 export type AppStatus = 'idle' | 'loading' | 'success' | 'error';
-export type AppView = 'landing' | 'onboarding' | 'dashboard' | 'checkingIn' | 'progress' | 'mealPlan' | 'recipes';
+export type AppView = 'landing' | 'onboarding' | 'dashboard' | 'checkingIn' | 'progress' | 'mealPlan' | 'recipes' | 'trialExpired';
 
 
 // New Type Guards for Logging

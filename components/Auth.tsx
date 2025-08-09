@@ -1,16 +1,24 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from './Card';
 import { Button } from './Button';
 import { auth } from '../services/firebase';
 import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 
 export const Auth: React.FC = () => {
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
   const signInWithGoogle = async () => {
+    setError(null);
+    setIsLoading(true);
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
     } catch (error) {
       console.error("Error signing in with Google: ", error);
+      setError("Failed to sign in with Google. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -30,9 +38,26 @@ export const Auth: React.FC = () => {
                      Your personal AI metabolic coach.
                 </p>
                 <div className="space-y-4">
-                    <Button onClick={signInWithGoogle} className="w-full" size="lg">
-                        Sign in with Google
+                    <Button 
+                        onClick={signInWithGoogle} 
+                        className="w-full" 
+                        size="lg"
+                        disabled={isLoading}
+                    >
+                        {isLoading ? (
+                            <span className="flex items-center justify-center">
+                                <span className="material-symbols-outlined animate-spin mr-2">progress_activity</span>
+                                Signing in...
+                            </span>
+                        ) : (
+                            "Sign in with Google"
+                        )}
                     </Button>
+                    {error && (
+                        <div className="text-red-600 dark:text-red-400 text-sm text-center mt-2">
+                            {error}
+                        </div>
+                    )}
                 </div>
             </Card>
         </div>

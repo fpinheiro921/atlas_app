@@ -2,11 +2,24 @@ import { db } from './firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import type { OnboardingData, CheckInData, DailyMacros, SaveData } from '../types';
 import { Sex, DietHistory, DietPhase, OnboardingGoal, ReverseDietPace } from '../types';
+import { APP_VERSION } from '../App';
 
 export const saveUserData = async (userId: string, data: SaveData): Promise<void> => {
   try {
+    // Validate the user ID
+    if (!userId?.trim()) {
+      throw new Error("Invalid user ID");
+    }
+
+    // Create a sanitized copy of the data
+    const sanitizedData = {
+      ...data,
+      trialStartDate: data.trialStartDate || new Date().toISOString(),
+      version: APP_VERSION
+    };
+
     const userDocRef = doc(db, 'users', userId);
-    await setDoc(userDocRef, data, { merge: true });
+    await setDoc(userDocRef, sanitizedData, { merge: true });
   } catch (error) {
     console.error("Error saving user data to Firestore: ", error);
     throw new Error("Could not save your data. Please try again.");
@@ -15,10 +28,44 @@ export const saveUserData = async (userId: string, data: SaveData): Promise<void
 
 export const loadUserData = async (userId: string): Promise<SaveData | null> => {
   try {
+    // Validate the user ID
+    if (!userId?.trim()) {
+      throw new Error("Invalid user ID");
+    }
+
     const userDocRef = doc(db, 'users', userId);
     const docSnap = await getDoc(userDocRef);
+    
     if (docSnap.exists()) {
-      return docSnap.data() as SaveData;
+      const data = docSnap.data() as SaveData;
+      
+      // Validate the data structure
+      if (!data || typeof data !== 'object') {
+        console.error("Invalid data structure in Firestore");
+        return null;
+      }
+
+      // Add missing fields with default values
+      const normalizedData: SaveData = {
+        version: data.version || 1,
+        isOnboarded: data.isOnboarded || false,
+        onboardingData: data.onboardingData || null,
+        checkInData: data.checkInData || null,
+        history: data.history || [],
+        planOverview: data.planOverview || null,
+        planSources: data.planSources || null,
+        readArticleIds: data.readArticleIds || [],
+        trainingPlan: data.trainingPlan || null,
+        workoutLogs: data.workoutLogs || [],
+        loggedMeals: data.loggedMeals || [],
+        mealPlan: data.mealPlan || null,
+        dailyTip: data.dailyTip || null,
+        savedRecipes: data.savedRecipes || [],
+        progressPhotos: data.progressPhotos || [],
+        trialStartDate: data.trialStartDate || new Date().toISOString()
+      };
+
+      return normalizedData;
     }
     return null;
   } catch (error) {

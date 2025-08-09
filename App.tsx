@@ -37,6 +37,7 @@ import { RecipeView } from './components/RecipeView';
 import { MonthlyReviewModal } from './components/MonthlyReviewModal';
 import { WorkoutReviewModal } from './components/WorkoutReviewModal';
 import { GoalSwitcherModal } from './components/GoalSwitcherModal';
+import { TrialExpired } from './components/TrialExpired';
 
 const ErrorDisplay: React.FC<{ message: string; onRetry: () => void }> = ({ message, onRetry }) => (
     <Card className="text-center">
@@ -51,7 +52,7 @@ const ErrorDisplay: React.FC<{ message: string; onRetry: () => void }> = ({ mess
     </Card>
 );
 
-const APP_VERSION = 2;
+export const APP_VERSION = 2;
 
 const emptySaveData: SaveData = {
     isOnboarded: false,
@@ -68,6 +69,7 @@ const emptySaveData: SaveData = {
     dailyTip: null,
     savedRecipes: [],
     progressPhotos: [],
+    trialStartDate: new Date().toISOString()
 };
 
 
@@ -128,28 +130,76 @@ const App: React.FC = () => {
 
   useTheme();
 
+  // Calculate days remaining in trial
+  const calculateTrialDaysRemaining = (trialStartDate: string): number => {
+    const trialStart = new Date(trialStartDate);
+    const now = new Date();
+    const diffTime = now.getTime() - trialStart.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return Math.max(0, 7 - diffDays); // 7-day trial
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
       if (user) {
-        const userData = await loadUserData(user.uid);
-        if (userData && userData.isOnboarded) {
-          setOnboardingData(userData.onboardingData);
-          setCheckInData(userData.checkInData);
-          setHistory(userData.history);
-          setPlanOverview(userData.planOverview);
-          setPlanSources(userData.planSources);
-          setReadArticleIds(new Set(userData.readArticleIds));
-          setTrainingPlan(userData.trainingPlan);
-          setWorkoutLogs(userData.workoutLogs || []);
-          setLoggedMeals(userData.loggedMeals || []);
-          setMealPlan(userData.mealPlan || null);
-          setDailyTip(userData.dailyTip || null);
-          setSavedRecipes(userData.savedRecipes || []);
-          setProgressPhotos(userData.progressPhotos || []);
-          setView('dashboard');
-        } else {
-          setView('onboarding');
+        try {
+          // Keep loading state while we fetch Firestore data
+          setAuthLoading(true);
+          const userData = await loadUserData(user.uid);
+          
+          if (userData) {
+            // Initialize or validate trial start date
+            if (!userData.trialStartDate) {
+              userData.trialStartDate = new Date().toISOString();
+              await saveUserData(user.uid, userData);
+            }
+
+            // Validate trial start date format
+            const trialDate = new Date(userData.trialStartDate);
+            if (isNaN(trialDate.getTime())) {
+              userData.trialStartDate = new Date().toISOString();
+              await saveUserData(user.uid, userData);
+            }
+
+            if (userData.isOnboarded) {
+              setOnboardingData(userData.onboardingData);
+              setCheckInData(userData.checkInData);
+              setHistory(userData.history);
+              setPlanOverview(userData.planOverview);
+              setPlanSources(userData.planSources);
+              setReadArticleIds(new Set(userData.readArticleIds));
+              setTrainingPlan(userData.trainingPlan);
+              setWorkoutLogs(userData.workoutLogs || []);
+              setLoggedMeals(userData.loggedMeals || []);
+              setMealPlan(userData.mealPlan || null);
+              setDailyTip(userData.dailyTip || null);
+              setSavedRecipes(userData.savedRecipes || []);
+              setProgressPhotos(userData.progressPhotos || []);
+
+              // Check trial status
+              const daysRemaining = calculateTrialDaysRemaining(userData.trialStartDate);
+              if (daysRemaining > 0) {
+                setView('dashboard');
+              } else {
+                setView('trialExpired');
+              }
+            } else {
+              setView('onboarding');
+            }
+          } else {
+            // New user, set trial start date
+            const newUserData = {
+              ...emptySaveData,
+              trialStartDate: new Date().toISOString()
+            };
+            await saveUserData(user.uid, newUserData);
+            setView('onboarding');
+          }
+        } catch (error) {
+          console.error("Error loading user data:", error);
+          setError("Failed to load your data. Please try refreshing the page.");
+          setView('error');
         }
       } else {
         setView('landing');
@@ -617,6 +667,7 @@ const App: React.FC = () => {
       progress: { title: "Progress Review", subtitle: "Analyze your long-term trends." },
       mealPlan: { title: "AI Meal Planner", subtitle: "Generate a weekly meal plan for your macros." },
       recipes: { title: "Recipe Book", subtitle: "Your collection of saved and adapted recipes." },
+      trialExpired: { title: "Trial Expired", subtitle: "Upgrade to continue your transformation." },
   };
 
   const renderContent = () => {
@@ -630,6 +681,9 @@ const App: React.FC = () => {
         }
         return <LandingPage onStartOnboarding={() => setView('auth')} />;
     }
+
+    // Calculate trial days remaining if user data is loaded
+    const trialDaysRemaining = user && onboardingData ? calculateTrialDaysRemaining(onboardingData.trialStartDate || new Date().toISOString()) : 0;
 
     switch (view) {
       case 'landing':
@@ -662,7 +716,7 @@ const App: React.FC = () => {
                 onNavigate={setView}
                 onGenerateShoppingList={handleGenerateShoppingList}
                 isRecipeSaved={isRecipeSaved}
-                trialDaysRemaining={999} 
+                trialDaysRemaining={trialDaysRemaining}
                 isAdmin={false}
             />
         );
@@ -724,6 +778,8 @@ const App: React.FC = () => {
                 onSaveRecipe={handleSaveRecipe}
                 onDeleteRecipe={handleDeleteRecipe}
             />;
+      case 'trialExpired':
+        return <TrialExpired onLogout={handleSignOut} />;
       default:
         // Fallback to dashboard if in a weird state
         setView(onboardingData ? 'dashboard' : 'landing');
