@@ -133,13 +133,11 @@ const App: React.FC = () => {
           setError('Could not load your data. Please try again.');
         } finally {
           setStatus('idle');
-          isInitialLoad.current = false;
         }
       };
       loadData();
-    } else {
-      isInitialLoad.current = false;
     }
+    isInitialLoad.current = false;
   }, [user]);
 
   useEffect(() => {
