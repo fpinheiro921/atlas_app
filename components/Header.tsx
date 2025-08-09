@@ -56,8 +56,8 @@ export const Header: React.FC<HeaderProps> = ({ onSave, onLoad, onOpenLibrary, o
             <div className="w-12 h-12">
                 <ThemeToggle />
             </div>
-             <button onClick={onReset} title="Logout" aria-label="Logout" className={`${buttonClasses} mt-2`}>
-                <span className="material-symbols-outlined">logout</span>
+             <button onClick={onReset} title="Reset & Start Over" aria-label="Reset all app data and start over" className={`${buttonClasses} mt-2`}>
+                <span className="material-symbols-outlined">restart_alt</span>
             </button>
              <input
               type="file"

@@ -129,109 +129,28 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStartOnboarding }) =
         </div>
       </section>
 
-      <section className="py-16 sm:py-24">
-        <div className="container mx-auto px-4">
-            <div className="text-center max-w-3xl mx-auto">
-                <p className="font-semibold text-brand uppercase">The Old Way vs. The Atlas Way</p>
-                <h2 className="mt-2 text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white">There's a Smarter Way to Transform.</h2>
-                <p className="mt-4 max-w-2xl mx-auto text-lg text-slate-600 dark:text-slate-400">Your body is a dynamic system. Your fitness plan should be too. Here’s how Atlas stacks up against other solutions.</p>
-            </div>
-            <div className="overflow-x-auto max-w-5xl mx-auto mt-12">
-                <table className="w-full border-collapse text-center min-w-[640px]">
-                    <thead>
-                        <tr className="border-b border-slate-200 dark:border-slate-700">
-                            <th className="p-4 text-left text-lg font-semibold text-slate-900 dark:text-white">Key Feature</th>
-                            <th className="p-4 text-lg font-semibold text-brand">Atlas AI</th>
-                            <th className="p-4 text-lg font-semibold text-slate-900 dark:text-white">Carbon Diet Coach</th>
-                            <th className="p-4 text-lg font-semibold text-slate-900 dark:text-white">Human Coach</th>
-                            <th className="p-4 text-lg font-semibold text-slate-900 dark:text-white">MyFitnessPal</th>
-                        </tr>
-                    </thead>
-                    <tbody className="text-slate-600 dark:text-slate-400">
-                        <tr className="border-b border-slate-200 dark:border-slate-700">
-                            <td className="p-4 text-left">Dynamic Weekly Adjustments</td>
-                            <td><span className="material-symbols-outlined text-green-500">check_circle</span></td>
-                            <td><span className="material-symbols-outlined text-green-500">check_circle</span></td>
-                            <td><span className="material-symbols-outlined text-green-500">check_circle</span> (Manual)</td>
-                            <td><span className="material-symbols-outlined text-red-500">cancel</span></td>
-                        </tr>
-                        <tr className="border-b border-slate-200 dark:border-slate-700">
-                            <td className="p-4 text-left">AI Photo Meal Logging</td>
-                            <td><span className="material-symbols-outlined text-green-500">check_circle</span></td>
-                            <td><span className="material-symbols-outlined text-red-500">cancel</span></td>
-                            <td><span className="material-symbols-outlined text-red-500">cancel</span></td>
-                            <td><span className="material-symbols-outlined text-red-500">cancel</span> (Manual Entry)</td>
-                        </tr>
-                        <tr className="border-b border-slate-200 dark:border-slate-700">
-                            <td className="p-4 text-left">Integrated & Progressive Training</td>
-                            <td><span className="material-symbols-outlined text-green-500">check_circle</span></td>
-                            <td><span className="material-symbols-outlined text-red-500">cancel</span></td>
-                            <td><span className="material-symbols-outlined text-green-500">check_circle</span></td>
-                            <td><span className="material-symbols-outlined text-red-500">cancel</span> (Generic Plans)</td>
-                        </tr>
-                        <tr className="border-b border-slate-200 dark:border-slate-700">
-                            <td className="p-4 text-left">24/7 AI Chat Support</td>
-                            <td><span className="material-symbols-outlined text-green-500">check_circle</span></td>
-                            <td><span className="material-symbols-outlined text-red-500">cancel</span></td>
-                            <td><span className="material-symbols-outlined text-red-500">cancel</span> (Limited Hours)</td>
-                            <td><span className="material-symbols-outlined text-red-500">cancel</span></td>
-                        </tr>
-                        <tr>
-                            <td className="p-4 text-left font-semibold text-slate-800 dark:text-slate-200">Average Monthly Price</td>
-                            <td className="p-4 font-bold text-lg text-brand">$19</td>
-                            <td className="p-4 font-bold text-lg text-slate-800 dark:text-slate-200">$10</td>
-                            <td className="p-4 font-bold text-lg text-slate-800 dark:text-slate-200">$500+</td>
-                            <td className="p-4 font-bold text-lg text-slate-800 dark:text-slate-200">$20 (No Coaching)</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div className="text-center mt-8">
-                <p className="text-lg max-w-3xl mx-auto text-slate-600 dark:text-slate-400">While other apps offer basic adjustments, Atlas is the only platform that combines dynamic nutrition coaching with AI-powered meal logging and a fully integrated, progressive training plan. It's the complete transformation system.</p>
-            </div>
-        </div>
-      </section>
-      
+      {/* Pricing & Value Section */}
       <section className="py-16 sm:py-24 bg-white dark:bg-slate-900/50">
         <div className="container mx-auto px-4">
-          <div className="text-center max-w-3xl mx-auto">
-            <p className="font-semibold text-brand uppercase">Simple, Transparent Pricing</p>
-            <h2 className="mt-2 text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white">One Plan. Unlimited Results.</h2>
-          </div>
-          <div className="mt-12 max-w-lg mx-auto">
-            <Card className="border-2 border-brand shadow-2xl shadow-brand/10">
-                <div className="text-center">
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">Atlas Full Access</h3>
-                    <p className="mt-1 text-slate-600 dark:text-slate-400">Everything you need to transform your body and never hit a plateau again.</p>
-                </div>
-                <div className="mt-6 mb-8 flex justify-center items-baseline gap-2">
-                    <span className="font-display text-5xl font-extrabold text-slate-900 dark:text-white">$19</span>
-                    <span className="text-xl text-slate-500 dark:text-slate-400">/ month</span>
-                </div>
-                <ul className="space-y-3">
-                    <li className="flex items-center gap-3"><span className="material-symbols-outlined text-green-500">check_circle</span> <div><span className="font-semibold text-slate-800 dark:text-slate-200">Unlimited</span> Dynamic Weekly AI Coaching</div></li>
-                    <li className="flex items-center gap-3"><span className="material-symbols-outlined text-green-500">check_circle</span> <div><span className="font-semibold text-slate-800 dark:text-slate-200">Unlimited</span> AI Photo Meal Logs</div></li>
-                    <li className="flex items-center gap-3"><span className="material-symbols-outlined text-green-500">check_circle</span> <div><span className="font-semibold text-slate-800 dark:text-slate-200">Unlimited</span> 24/7 AI Chat Coach Access</div></li>
-                    <li className="flex items-center gap-3"><span className="material-symbols-outlined text-green-500">check_circle</span> Personalized Training & AI Meal Planner</li>
-                    <li className="flex items-center gap-3"><span className="material-symbols-outlined text-green-500">check_circle</span> Full Progress Tracking & Education Library</li>
-                </ul>
-                <Button onClick={onStartOnboarding} size="lg" className="w-full mt-8">Start My Transformation</Button>
-                <div className="text-center mt-4">
-                    <p className="font-semibold text-sm">
-                        Or save 17% with our{' '}
-                        <button onClick={onStartOnboarding} className="text-brand hover:underline focus:outline-none">
-                            Best Value Plan
-                        </button>
-                        {' '}— $199 per year.
-                    </p>
-                </div>
-            </Card>
-            <div className="mt-10 text-center">
-                <div className="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-lg inline-block text-sm">
-                    <p><span className="font-bold text-slate-800 dark:text-slate-200">Your Plateau-Proof Guarantee:</span> Not seeing results? If you complete your weekly check-ins for 30 days and don't see progress, we'll send you a full refund. No questions asked.</p>
-                </div>
+            <div className="text-center max-w-3xl mx-auto">
+                <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white">An Unbeatable Value Proposition</h2>
+                <p className="mt-4 text-lg text-slate-600 dark:text-slate-400">
+                    Atlas isn't just another tracker. It's an investment in a guaranteed outcome, saving you time, money, and frustration.
+                </p>
             </div>
-          </div>
+            <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+                <ValuePropCard icon="model_training" title="Eliminate Guesswork">The AI does the hard work, providing clear rationale for every adjustment. No more trial-and-error.</ValuePropCard>
+                <ValuePropCard icon="savings" title="Save Significant Money">Get the core feedback loop of a high-end human coach (a $200-$500/mo value) for a fraction of the price.
+                </ValuePropCard>
+                <ValuePropCard icon="ecg_heart" title="Build Real Knowledge">Learn the 'why' behind your plan with built-in articles and insights, empowering you for life.</ValuePropCard>
+                <ValuePropCard icon="military_tech" title="Guaranteed Results">As long as you provide the data, the AI will adapt to ensure you never plateau again.
+                </ValuePropCard>
+            </div>
+            <div className="mt-20 text-center">
+                 <Button onClick={onStartOnboarding} size="lg">
+                    Sign in with Google
+                </Button>
+            </div>
         </div>
       </section>
 
