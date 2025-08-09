@@ -639,7 +639,7 @@ const App: React.FC = () => {
   const viewTitles: Record<AppView, { title: string; subtitle: string }> = {
       landing: { title: "Atlas", subtitle: "Stop Yo-Yo Dieting. Start Sustainable Results." },
       onboarding: { title: "Welcome to Atlas", subtitle: "Let's get you set up for success." },
-      dashboard: { title: "Dashboard", subtitle: `Welcome back!` },
+      dashboard: { title: "Dashboard", subtitle: `Welcome back, ${user?.displayName || ''}!` },
       checkingIn: { title: "Weekly Check-In", subtitle: "Let's review your week and adjust your plan." },
       progress: { title: "Progress Review", subtitle: "Analyze your long-term trends." },
       mealPlan: { title: "AI Meal Planner", subtitle: "Generate a weekly meal plan for your macros." },
