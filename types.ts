@@ -18,24 +18,6 @@ export enum DietHistory {
   FREQUENT = 'frequent',   // Dieted 1/3 to 2/3 of the last year
   CHRONIC = 'chronic'      // Dieted >2/3 of the last year
 }
-    version?: number;
-    isOnboarded: boolean;
-    onboardingData: OnboardingData | null;
-    checkInData: CheckInData | null;
-    history: CheckInRecord[];
-    planOverview: PlanWeek[] | null;
-    planSources: GroundingSource[] | null;
-    readArticleIds: string[];
-    trainingPlan: TrainingPlan | null;
-    workoutLogs: WorkoutLog[];
-    loggedMeals: DailyMealLog[];
-    mealPlan: MealPlan | null;
-    dailyTip: DailyCoachingTip | null;
-    savedRecipes: Meal[];
-    progressPhotos: ProgressPhoto[];
-    trialStartDate?: string; // ISO string date when the trial started
-}
-}
 
 export enum OnboardingGoal {
   FAT_LOSS = 'Fat Loss',
