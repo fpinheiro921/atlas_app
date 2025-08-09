@@ -639,8 +639,12 @@ const App: React.FC = () => {
   };
 
   const renderContent = () => {
-    if (isAuthLoading) {
-        return <div className="flex justify-center items-center h-screen"><Spinner /></div>;
+    if (isAuthLoading || isPlanLoading) {
+        return (
+            <div className="flex justify-center items-center h-screen">
+                {isPlanLoading ? <PlanGenerationLoader /> : <Spinner />}
+            </div>
+        );
     }
 
     if (authError) {
