@@ -1,12 +1,19 @@
 import React from 'react';
 import { Card } from './Card';
 import { Button } from './Button';
+import { auth } from '../services/firebase';
+import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 
-interface AuthProps {
-    onGetStarted: () => void;
-}
+export const Auth: React.FC = () => {
+  const signInWithGoogle = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      console.error("Error signing in with Google: ", error);
+    }
+  };
 
-export const Auth: React.FC<AuthProps> = ({ onGetStarted }) => {
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-md">
@@ -23,8 +30,8 @@ export const Auth: React.FC<AuthProps> = ({ onGetStarted }) => {
                      Your personal AI metabolic coach.
                 </p>
                 <div className="space-y-4">
-                    <Button onClick={onGetStarted} className="w-full" size="lg">
-                        Get Started
+                    <Button onClick={signInWithGoogle} className="w-full" size="lg">
+                        Sign in with Google
                     </Button>
                 </div>
             </Card>

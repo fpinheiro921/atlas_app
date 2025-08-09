@@ -1,5 +1,31 @@
-import type { OnboardingData, CheckInData, DailyMacros } from '../types';
+import { db } from './firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import type { OnboardingData, CheckInData, DailyMacros, SaveData } from '../types';
 import { Sex, DietHistory, DietPhase, OnboardingGoal, ReverseDietPace } from '../types';
+
+export const saveUserData = async (userId: string, data: SaveData): Promise<void> => {
+  try {
+    const userDocRef = doc(db, 'users', userId);
+    await setDoc(userDocRef, data, { merge: true });
+  } catch (error) {
+    console.error("Error saving user data to Firestore: ", error);
+    throw new Error("Could not save your data. Please try again.");
+  }
+};
+
+export const loadUserData = async (userId: string): Promise<SaveData | null> => {
+  try {
+    const userDocRef = doc(db, 'users', userId);
+    const docSnap = await getDoc(userDocRef);
+    if (docSnap.exists()) {
+      return docSnap.data() as SaveData;
+    }
+    return null;
+  } catch (error) {
+    console.error("Error loading user data from Firestore: ", error);
+    throw new Error("Could not load your data. Please try again.");
+  }
+};
 
 /**
  * Determines the protein intake multiplier based on age and deficit status,

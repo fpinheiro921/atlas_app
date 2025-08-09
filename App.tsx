@@ -1,8 +1,11 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
+import type { User } from 'firebase/auth';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from './services/firebase';
 import type { CheckInData, AIRecommendation, AppStatus, OnboardingData, SaveData, AppView, CheckInRecord, PlanWeek, Article, TrainingPlan, WorkoutLog, WorkoutDay, GroundingSource, Supplement, ChatMessage, MealAnalysis, DailyMealLog, MealPlan, ShoppingList, DailyCoachingTip, Meal, MonthlyReviewReport, ProgressPhoto } from './types';
 import { isSaveData, OnboardingGoal, Sex, MenstrualCyclePhase, DietPhase, ReverseDietPace } from './types';
 import { getAIRecommendation, reforecastFatLossPlan, generateInitialPlansAndRoadmap, createChat, generateShoppingList, getDailyCoachingTip, generateMonthlyReview, generateOrModifyRecipe, generateWeeklyMealPlan, getMealMacrosFromImage } from './services/geminiService';
-import { calculateDietBreakPlan } from './services/userProfileService';
+import { calculateDietBreakPlan, saveUserData, loadUserData } from './services/userProfileService';
 import { CheckInForm } from './components/CheckInForm';
 import { RecommendationDisplay } from './components/RecommendationDisplay';
 import { OnboardingWizard } from './components/OnboardingWizard';
@@ -25,6 +28,7 @@ import { ChatWindow } from './components/ChatWindow';
 import { MealLogger } from './components/MealLogger';
 import { MealPlanView } from './components/MealPlanView';
 import type { Chat } from '@google/genai';
+import { Auth } from './components/Auth';
 import { LandingPage } from './components/LandingPage';
 import { ShoppingListModal } from './components/ShoppingListModal';
 import { ExerciseGuideModal } from './components/ExerciseGuideModal';
@@ -48,7 +52,6 @@ const ErrorDisplay: React.FC<{ message: string; onRetry: () => void }> = ({ mess
 );
 
 const APP_VERSION = 2;
-const LOCAL_STORAGE_KEY = 'atlas-save-data-v2';
 
 const emptySaveData: SaveData = {
     isOnboarded: false,
@@ -69,6 +72,8 @@ const emptySaveData: SaveData = {
 
 
 const App: React.FC = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [view, setView] = useState<AppView>('landing');
   const [status, setStatus] = useState<AppStatus>('idle');
   const [onboardingData, setOnboardingData] = useState<OnboardingData | null>(null);
@@ -122,11 +127,41 @@ const App: React.FC = () => {
   const [isGoalSwitcherOpen, setIsGoalSwitcherOpen] = useState(false);
 
   useTheme();
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setUser(user);
+      if (user) {
+        const userData = await loadUserData(user.uid);
+        if (userData) {
+          setOnboardingData(userData.onboardingData);
+          setCheckInData(userData.checkInData);
+          setHistory(userData.history);
+          setPlanOverview(userData.planOverview);
+          setPlanSources(userData.planSources);
+          setReadArticleIds(new Set(userData.readArticleIds));
+          setTrainingPlan(userData.trainingPlan);
+          setWorkoutLogs(userData.workoutLogs || []);
+          setLoggedMeals(userData.loggedMeals || []);
+          setMealPlan(userData.mealPlan || null);
+          setDailyTip(userData.dailyTip || null);
+          setSavedRecipes(userData.savedRecipes || []);
+          setProgressPhotos(userData.progressPhotos || []);
+          setView(userData.isOnboarded ? 'dashboard' : 'onboarding');
+        } else {
+          setView('onboarding');
+        }
+      }
+      setAuthLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
   
   const handleResetApp = useCallback(() => {
     if (window.confirm("Are you sure you want to reset all your data? This will clear your entire history and plan.")) {
-        localStorage.removeItem(LOCAL_STORAGE_KEY);
-        // Manually reset all state to navigate to the landing page without a full reload, which is more robust.
+        if (user) {
+            saveUserData(user.uid, emptySaveData);
+        }
         setView('landing');
         setStatus('idle');
         setOnboardingData(null);
@@ -150,43 +185,9 @@ const App: React.FC = () => {
     }
   }, []);
 
-  // Load from Local Storage on initial mount
+  // Save to Firestore whenever critical data changes
   useEffect(() => {
-    try {
-        const savedDataString = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (savedDataString) {
-            const saveData = JSON.parse(savedDataString);
-            if (isSaveData(saveData)) {
-                setOnboardingData(saveData.onboardingData);
-                setCheckInData(saveData.checkInData);
-                setHistory(saveData.history);
-                setPlanOverview(saveData.planOverview);
-                setPlanSources(saveData.planSources);
-                setReadArticleIds(new Set(saveData.readArticleIds));
-                setTrainingPlan(saveData.trainingPlan);
-                setWorkoutLogs(saveData.workoutLogs || []);
-                setLoggedMeals(saveData.loggedMeals || []);
-                setMealPlan(saveData.mealPlan || null);
-                setDailyTip(saveData.dailyTip || null);
-                setSavedRecipes(saveData.savedRecipes || []);
-                setProgressPhotos(saveData.progressPhotos || []);
-                setView(saveData.isOnboarded ? 'dashboard' : 'onboarding');
-            } else {
-                 setView('landing');
-            }
-        } else {
-            setView('landing');
-        }
-    } catch (e) {
-        console.error("Failed to load data from local storage", e);
-        setView('landing');
-    }
-    isInitialLoad.current = false;
-  }, []);
-
-  // Save to Local Storage whenever critical data changes
-  useEffect(() => {
-    if (isInitialLoad.current) return;
+    if (isInitialLoad.current || authLoading || !user) return;
     
     const saveData: SaveData = {
       version: APP_VERSION,
@@ -206,12 +207,8 @@ const App: React.FC = () => {
       progressPhotos,
     };
     
-    try {
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(saveData));
-    } catch (err) {
-        console.error("Error saving data to Local Storage:", err);
-    }
-  }, [onboardingData, checkInData, history, planOverview, planSources, readArticleIds, trainingPlan, workoutLogs, loggedMeals, mealPlan, dailyTip, savedRecipes, progressPhotos, view]);
+    saveUserData(user.uid, saveData);
+  }, [user, authLoading, onboardingData, checkInData, history, planOverview, planSources, readArticleIds, trainingPlan, workoutLogs, loggedMeals, mealPlan, dailyTip, savedRecipes, progressPhotos, view]);
   
   const handleOnboardingComplete = useCallback(async (data: OnboardingData) => {
     setError(null);
@@ -393,55 +390,29 @@ const App: React.FC = () => {
     }
 };
 
-  const handleSave = () => {
-    const saveDataString = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (!saveDataString) {
-        alert("No data to save.");
-        return;
-    }
-
-    const blob = new Blob([saveDataString], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `atlas-save-data-${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  const handleLoad = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-        try {
-          const result = JSON.parse(event.target?.result as string);
-          if (isSaveData(result)) {
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(result));
-            window.location.reload();
-          } else {
-            alert('Invalid or corrupted save file.');
-          }
-        } catch (error) {
-          alert('Error reading save file.');
-        }
-      };
-      reader.readAsText(file);
-    }
-    if (e.target) e.target.value = '';
-  };
-
-  const handleLoadDummyData = async () => {
-    const freshDummyData = structuredClone(dummySaveData);
-    if (isSaveData(freshDummyData)) {
-       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(freshDummyData));
-       window.location.reload();
-    } else {
-        console.error("Failed to load test data: the dummy data object is not valid.");
-        alert("Failed to load test data. The data format is invalid.");
-    }
+  const handleSignOut = () => {
+    auth.signOut();
+    // Reset state to avoid showing old data while new user logs in
+    setView('landing');
+    setStatus('idle');
+    setOnboardingData(null);
+    setCheckInData(null);
+    setHistory([]);
+    setCurrentRecommendation(null);
+    setError(null);
+    setLastCheckInData(null);
+    setPlanOverview(null);
+    setPlanSources(null);
+    setTrainingPlan(null);
+    setMealPlan(null);
+    setSavedRecipes([]);
+    setReadArticleIds(new Set());
+    setWorkoutLogs([]);
+    setLoggedMeals([]);
+    setProgressPhotos([]);
+    setDailyTip(null);
+    setChatSession(null);
+    setChatMessages([]);
   };
 
   const handleViewArticle = (articleId: string) => {
@@ -647,6 +618,14 @@ const App: React.FC = () => {
   };
 
   const renderContent = () => {
+    if (authLoading) {
+        return <div className="w-full h-screen flex items-center justify-center"><Spinner /></div>;
+    }
+
+    if (!user) {
+        return <Auth />;
+    }
+
     switch (view) {
       case 'landing':
         return <LandingPage onStartOnboarding={() => setView(onboardingData ? 'dashboard' : 'onboarding')} />;
@@ -758,12 +737,11 @@ const App: React.FC = () => {
   return (
     <div className="w-full min-h-screen">
         <Header 
-            onSave={handleSave} 
-            onLoad={handleLoad} 
             onOpenLibrary={() => setIsEducationLibraryOpen(true)}
             onOpenSupplementLibrary={() => setIsSupplementLibraryOpen(true)}
             onNavigate={setView}
             onReset={handleResetApp}
+            onSignOut={handleSignOut}
         />
         <main className="ml-20 p-4 sm:p-6 lg:p-8">
             <div className="max-w-7xl mx-auto">
