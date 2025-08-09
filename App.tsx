@@ -349,7 +349,12 @@ const App: React.FC = () => {
 
     setCheckInData(finalCheckInData);
     setTrainingPlan(finalTrainingPlan);
-    setMealPlan(null);
+
+    // Only invalidate the meal plan if macros have actually changed.
+    if (currentRecommendation.calorieAdjustment !== 0 || currentRecommendation.proteinAdjustment !== 0 || currentRecommendation.carbAdjustment !== 0 || currentRecommendation.fatAdjustment !== 0) {
+        setMealPlan(null);
+    }
+    
     setDailyTip(null);
     setCurrentRecommendation(null);
     setLastCheckInData(null);
@@ -393,12 +398,24 @@ const App: React.FC = () => {
 };
 
   const handleSave = () => {
-    const saveDataString = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (!saveDataString) {
-        alert("No data to save.");
-        return;
-    }
+    const dataToSave: SaveData = {
+        isOnboarded: view !== 'onboarding' && view !== 'landing' && !!onboardingData,
+        onboardingData,
+        checkInData,
+        history,
+        planOverview,
+        planSources,
+        readArticleIds: Array.from(readArticleIds),
+        trainingPlan,
+        workoutLogs,
+        loggedMeals,
+        mealPlan,
+        dailyTip,
+        savedRecipes,
+        progressPhotos,
+    };
 
+    const saveDataString = JSON.stringify(dataToSave, null, 2);
     const blob = new Blob([saveDataString], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
