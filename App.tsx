@@ -133,9 +133,12 @@ const App: React.FC = () => {
           setError('Could not load your data. Please try again.');
         } finally {
           setStatus('idle');
+          isInitialLoad.current = false;
         }
       };
       loadData();
+    } else {
+      isInitialLoad.current = false;
     }
   }, [user]);
 
@@ -161,8 +164,6 @@ const App: React.FC = () => {
         await saveUserDataToFirestore(user.uid, dataToSave);
       };
       saveData();
-    } else {
-      isInitialLoad.current = false;
     }
   }, [user, view, onboardingData, checkInData, history, planOverview, planSources, readArticleIds, trainingPlan, workoutLogs, loggedMeals, mealPlan, dailyTip, savedRecipes, progressPhotos]);
   
@@ -419,8 +420,20 @@ const App: React.FC = () => {
         try {
           const result = JSON.parse(event.target?.result as string);
           if (isSaveData(result)) {
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(result));
-            window.location.reload();
+            setOnboardingData(result.onboardingData);
+            setCheckInData(result.checkInData);
+            setHistory(result.history);
+            setPlanOverview(result.planOverview);
+            setPlanSources(result.planSources);
+            setReadArticleIds(new Set(result.readArticleIds));
+            setTrainingPlan(result.trainingPlan);
+            setWorkoutLogs(result.workoutLogs || []);
+            setLoggedMeals(result.loggedMeals || []);
+            setMealPlan(result.mealPlan || null);
+            setDailyTip(result.dailyTip || null);
+            setSavedRecipes(result.savedRecipes || []);
+            setProgressPhotos(result.progressPhotos || []);
+            setView(result.isOnboarded ? 'dashboard' : 'onboarding');
           } else {
             alert('Invalid or corrupted save file.');
           }
