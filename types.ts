@@ -1,4 +1,20 @@
 
+// Account and Subscription Types
+export enum AccountStatus {
+    TRIAL = 'trial',
+    ACTIVE = 'active',
+    EXPIRED = 'expired'
+}
+
+export interface UserSubscription {
+    accountStatus: AccountStatus;
+    trialStartDate: string; // ISO string
+    trialEndsAt: string; // ISO string
+    email: string;
+    gumroadId?: string;
+    subscriptionType?: 'monthly' | 'annual';
+    nextBillingDate?: string;
+}
 
 export enum UnitSystem {
   ORIGINAL = 'Original',
@@ -377,7 +393,7 @@ export interface SaveData {
     dailyTip: DailyCoachingTip | null;
     savedRecipes?: Meal[];
     progressPhotos?: ProgressPhoto[];
-    trialStartDate?: string; // ISO string date when the trial started
+    subscription: UserSubscription;
 }
 
 
@@ -631,6 +647,20 @@ export const isGoalTransitionPlan = (obj: any): obj is GoalTransitionPlan => {
     );
 };
 
+export const isUserSubscription = (obj: any): obj is UserSubscription => {
+    return (
+        obj &&
+        typeof obj.accountStatus === 'string' &&
+        Object.values(AccountStatus).includes(obj.accountStatus as AccountStatus) &&
+        typeof obj.trialStartDate === 'string' &&
+        typeof obj.trialEndsAt === 'string' &&
+        typeof obj.email === 'string' &&
+        (obj.gumroadId === undefined || typeof obj.gumroadId === 'string') &&
+        (obj.subscriptionType === undefined || ['monthly', 'annual'].includes(obj.subscriptionType)) &&
+        (obj.nextBillingDate === undefined || typeof obj.nextBillingDate === 'string')
+    );
+};
+
 export const isSaveData = (obj: any): obj is SaveData => {
     return !!obj &&
         (obj.version === undefined || typeof obj.version === 'number') &&
@@ -647,5 +677,6 @@ export const isSaveData = (obj: any): obj is SaveData => {
         (obj.mealPlan === null || isMealPlan(obj.mealPlan)) &&
         (obj.dailyTip === null || isDailyCoachingTip(obj.dailyTip)) &&
         (obj.savedRecipes === undefined || (Array.isArray(obj.savedRecipes) && obj.savedRecipes.every(isMeal))) &&
-        (obj.progressPhotos === undefined || (Array.isArray(obj.progressPhotos) && obj.progressPhotos.every(isProgressPhoto)));
+        (obj.progressPhotos === undefined || (Array.isArray(obj.progressPhotos) && obj.progressPhotos.every(isProgressPhoto))) &&
+        isUserSubscription(obj.subscription);
 };
