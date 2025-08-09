@@ -16,7 +16,8 @@ export enum DietHistory {
   NONE = 'none',
   INFREQUENT = 'infrequent', // Dieted <1/3 of the last year
   FREQUENT = 'frequent',   // Dieted 1/3 to 2/3 of the last year
-  CHRONIC = 'chrexport interface SaveData {
+  CHRONIC = 'chronic'      // Dieted >2/3 of the last year
+}
     version?: number;
     isOnboarded: boolean;
     onboardingData: OnboardingData | null;
@@ -33,7 +34,7 @@ export enum DietHistory {
     savedRecipes: Meal[];
     progressPhotos: ProgressPhoto[];
     trialStartDate?: string; // ISO string date when the trial started
-}ted >2/3 of the last year
+}
 }
 
 export enum OnboardingGoal {
