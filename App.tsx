@@ -639,14 +639,6 @@ const App: React.FC = () => {
   };
 
   const renderContent = () => {
-    if (isAuthLoading || isPlanLoading) {
-        return (
-            <div className="flex justify-center items-center h-screen">
-                {isPlanLoading ? <PlanGenerationLoader /> : <Spinner />}
-            </div>
-        );
-    }
-
     if (authError) {
         return <ErrorDisplay message={authError} onRetry={signIn} />;
     }
@@ -755,6 +747,14 @@ const App: React.FC = () => {
     }
   };
   
+  if (isAuthLoading || isPlanLoading) {
+    return (
+        <div className="w-full min-h-screen bg-slate-50 dark:bg-slate-900 flex justify-center items-center">
+            {isPlanLoading ? <PlanGenerationLoader /> : <Spinner />}
+        </div>
+    );
+  }
+
   if (!user) {
       return (
         <main className="w-full min-h-screen">
