@@ -133,7 +133,7 @@ const App: React.FC = () => {
       setUser(user);
       if (user) {
         const userData = await loadUserData(user.uid);
-        if (userData) {
+        if (userData && userData.isOnboarded) {
           setOnboardingData(userData.onboardingData);
           setCheckInData(userData.checkInData);
           setHistory(userData.history);
@@ -147,10 +147,16 @@ const App: React.FC = () => {
           setDailyTip(userData.dailyTip || null);
           setSavedRecipes(userData.savedRecipes || []);
           setProgressPhotos(userData.progressPhotos || []);
-          setView(userData.isOnboarded ? 'dashboard' : 'onboarding');
-        } else {
+          setView('dashboard');
+        } else if (userData) {
+            setOnboardingData(userData.onboardingData);
+            setView('onboarding');
+        }
+        else {
           setView('onboarding');
         }
+      } else {
+        setView('landing');
       }
       setAuthLoading(false);
     });
@@ -623,12 +629,13 @@ const App: React.FC = () => {
     }
 
     if (!user) {
-        return <Auth />;
+        if (view === 'auth') {
+            return <Auth />;
+        }
+        return <LandingPage onStartOnboarding={() => setView('auth')} />;
     }
 
     switch (view) {
-      case 'landing':
-        return <LandingPage onStartOnboarding={() => setView(onboardingData ? 'dashboard' : 'onboarding')} />;
       case 'onboarding':
         return <OnboardingWizard onComplete={handleOnboardingComplete} error={error} />;
       case 'dashboard':
