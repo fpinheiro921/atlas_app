@@ -649,7 +649,7 @@ const App: React.FC = () => {
   const renderContent = () => {
     switch (view) {
       case 'landing':
-        return <LandingPage onStartOnboarding={() => setView(onboardingData ? 'dashboard' : 'onboarding')} />;
+        return <LandingPage onGetStarted={() => setView(onboardingData ? 'dashboard' : 'onboarding')} />;
       case 'onboarding':
         return <OnboardingWizard onComplete={handleOnboardingComplete} error={error} />;
       case 'dashboard':
