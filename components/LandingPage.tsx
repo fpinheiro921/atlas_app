@@ -7,7 +7,7 @@ import { MealPlanMockup } from './landing/MealPlanMockup';
 
 
 interface LandingPageProps {
-    onGetStarted: () => void;
+    onStartOnboarding: () => void;
 }
 
 const ValuePropCard: React.FC<{ icon: string; title: string; children: React.ReactNode }> = ({ icon, title, children }) => (
@@ -21,7 +21,7 @@ const ValuePropCard: React.FC<{ icon: string; title: string; children: React.Rea
 );
 
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
+export const LandingPage: React.FC<LandingPageProps> = ({ onStartOnboarding }) => {
   return (
     <div className="w-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-[#0c0c0c] dark:to-[#161616] font-sans text-slate-800 dark:text-slate-200">
       {/* Hero Section */}
@@ -39,7 +39,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                     Stop guessing. Atlas is your AI coach for a complete body transformation. Get a dynamic plan that evolves with you, log meals with your camera, and receive precise adjustments to guarantee you reach your goal—no matter your starting point.
                 </p>
                 <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-                    <Button onClick={onGetStarted} size="lg">
+                    <Button onClick={onStartOnboarding} size="lg">
                         Start Your 7-Day Free Trial
                     </Button>
                 </div>
@@ -235,11 +235,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                     <li className="flex items-center gap-3"><span className="material-symbols-outlined text-green-500">check_circle</span> Personalized Training & AI Meal Planner</li>
                     <li className="flex items-center gap-3"><span className="material-symbols-outlined text-green-500">check_circle</span> Full Progress Tracking & Education Library</li>
                 </ul>
-                <Button onClick={onGetStarted} size="lg" className="w-full mt-8">Start My Transformation</Button>
+                <Button onClick={onStartOnboarding} size="lg" className="w-full mt-8">Start My Transformation</Button>
                 <div className="text-center mt-4">
                     <p className="font-semibold text-sm">
                         Or save 17% with our{' '}
-                        <button onClick={onGetStarted} className="text-brand hover:underline focus:outline-none">
+                        <button onClick={onStartOnboarding} className="text-brand hover:underline focus:outline-none">
                             Best Value Plan
                         </button>
                         {' '}— $199 per year.

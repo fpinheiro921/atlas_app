@@ -679,7 +679,7 @@ const App: React.FC = () => {
         if (view === 'auth') {
             return <Auth />;
         }
-        return <LandingPage onStartOnboarding={() => setView('auth')} />;
+        return <LandingPage onStartOnboarding={() => setView('onboarding')} />;
     }
 
     // Calculate trial days remaining if user data is loaded
