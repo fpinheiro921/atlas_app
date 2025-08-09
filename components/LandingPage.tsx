@@ -40,7 +40,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                 </p>
                 <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
                     <Button onClick={onGetStarted} size="lg">
-                        Get Started Free with Google
+                        Start Your 7-Day Free Trial
                     </Button>
                 </div>
             </div>

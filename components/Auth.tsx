@@ -13,10 +13,20 @@ export const Auth: React.FC = () => {
     setIsLoading(true);
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      // User successfully logged in, trial management is handled in App.tsx
+      // through the authStateChanged listener and loadUserData
     } catch (error) {
       console.error("Error signing in with Google: ", error);
-      setError("Failed to sign in with Google. Please try again.");
+      if (error instanceof Error) {
+        if (error.message.includes('popup-closed-by-user')) {
+          setError("Sign in was cancelled. Please try again.");
+        } else {
+          setError("Failed to sign in with Google. Please try again.");
+        }
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
