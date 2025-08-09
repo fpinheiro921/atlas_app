@@ -148,11 +148,7 @@ const App: React.FC = () => {
           setSavedRecipes(userData.savedRecipes || []);
           setProgressPhotos(userData.progressPhotos || []);
           setView('dashboard');
-        } else if (userData) {
-            setOnboardingData(userData.onboardingData);
-            setView('onboarding');
-        }
-        else {
+        } else {
           setView('onboarding');
         }
       } else {
@@ -636,6 +632,8 @@ const App: React.FC = () => {
     }
 
     switch (view) {
+      case 'landing':
+        return <LandingPage onStartOnboarding={() => setView('auth')} />;
       case 'onboarding':
         return <OnboardingWizard onComplete={handleOnboardingComplete} error={error} />;
       case 'dashboard':
