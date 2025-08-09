@@ -782,7 +782,7 @@ const App: React.FC = () => {
                     <h1 className="font-display text-3xl font-bold text-slate-900 dark:text-white uppercase">{viewTitles[view].title}</h1>
                     <p className="text-slate-600 dark:text-slate-400">{viewTitles[view].subtitle}</p>
                     <div className="mt-4 p-4 bg-blue-100 dark:bg-blue-800/30 border-l-4 border-blue-500 text-blue-800 dark:text-blue-300 rounded-r-lg">
-                        <p><span className="font-bold">Important:</span> Remember to use the "Save" and "Load" buttons in the sidebar to back up and restore your data.</p>
+                        <p><span className="font-bold">Important:</span> Remember to use the "Save" and "Load" buttons in the sidebar to back up and restore your data. We are working on a database integration to replace this process.</p>
                     </div>
                 </div>
                 {renderContent()}
