@@ -24,7 +24,7 @@ export const Header: React.FC<HeaderProps> = ({ user, onSave, onLoad, onOpenLibr
     };
 
     return (
-        <aside className="fixed top-0 left-0 h-full w-20 bg-black/10 dark:bg-black/20 backdrop-blur-lg border-r border-white/10 dark:border-white/5 flex flex-col items-center py-6 gap-4 z-20">
+        <aside className="fixed top-0 left-0 h-full w-20 bg-black/10 dark:bg-black/20 backdrop-blur-lg border-r border-white/10 dark:border-white/5 flex flex-col items-center py-6 gap-4 z-20 overflow-y-auto">
             <div title="Atlas AI" className="font-display text-4xl font-black text-brand-light select-none">
                 A
             </div>

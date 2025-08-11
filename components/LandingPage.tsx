@@ -44,7 +44,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                     </Button>
                 </div>
             </div>
-            <div className="relative">
+            <div className="relative max-w-full">
                <DashboardMockup />
             </div>
         </div>
