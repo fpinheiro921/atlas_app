@@ -488,25 +488,67 @@ const App: React.FC = () => {
       setReviewingWorkout(log);
   };
 
-  const handleLogMeal = (analysis: MealAnalysis) => {
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-    setLoggedMeals(prevLogs => {
-      const newLogs = [...prevLogs];
-      let todayLog = newLogs.find(log => log.date === today);
+  const withUsageCheck = async (
+    usageType: keyof UsageData,
+    limit: number,
+    callback: () => Promise<void>
+  ) => {
+    if (!user || !usageData) return;
 
-      if (todayLog) {
-        todayLog.meals.push(analysis);
+    const now = new Date();
+    const currentUsage = usageData[usageType];
+
+    if (new Date(currentUsage.resetsOn) < now) {
+      currentUsage.count = 0;
+      const nextReset = new Date(now);
+      if (usageType === 'mealPlanGenerations') {
+        nextReset.setDate(now.getDate() + 7);
       } else {
-        todayLog = { date: today, meals: [analysis] };
-        newLogs.push(todayLog);
+        nextReset.setMonth(now.getMonth() + 1);
+        nextReset.setDate(1);
       }
-      return newLogs;
+      currentUsage.resetsOn = nextReset.toISOString();
+    }
+
+    if (currentUsage.count >= limit) {
+      setError(`You have reached your limit for ${usageType}.`);
+      return;
+    }
+
+    await callback();
+
+    const newCount = currentUsage.count + 1;
+    const newUsageData = {
+      ...usageData,
+      [usageType]: { ...currentUsage, count: newCount },
+    };
+    setUsageData(newUsageData);
+    await updateUserUsageData(user.uid, { [usageType]: newUsageData[usageType] });
+  };
+
+  const handleLogMeal = (analysis: MealAnalysis) => {
+    withUsageCheck('mealPhotoLogs', 50, async () => {
+        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+        setLoggedMeals(prevLogs => {
+          const newLogs = [...prevLogs];
+          let todayLog = newLogs.find(log => log.date === today);
+
+          if (todayLog) {
+            todayLog.meals.push(analysis);
+          } else {
+            todayLog = { date: today, meals: [analysis] };
+            newLogs.push(todayLog);
+          }
+          return newLogs;
+        });
     });
   };
 
   const handleSaveMealPlan = (plan: MealPlan) => {
-    setMealPlan(plan);
-    setView('dashboard');
+    withUsageCheck('mealPlanGenerations', 5, async () => {
+        setMealPlan(plan);
+        setView('dashboard');
+    });
   };
 
   const handleGenerateShoppingList = async () => {
