@@ -33,7 +33,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                     THE A.I. COACH FOR
                 </h1>
                 <h2 className="font-display text-4xl sm:text-6xl md:text-7xl font-extrabold text-brand tracking-tight uppercase mt-2">
-                    SOLOPRENEURS.
+                    SOLOPRENEURS
                 </h2>
                 <p className="mt-6 max-w-2xl mx-auto md:mx-0 text-lg sm:text-xl text-slate-600 dark:text-slate-400">
                     Stop guessing. Atlas is your AI coach for a complete body transformation. Get a dynamic plan that evolves with you, log meals with your camera, and receive precise adjustments to guarantee you reach your goal—no matter your starting point.
