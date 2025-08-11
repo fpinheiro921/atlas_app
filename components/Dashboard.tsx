@@ -254,18 +254,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
     {!isAdmin && trialDaysRemaining !== null && trialDaysRemaining <= 7 && isTrialBannerVisible && (
         <TrialBanner days={trialDaysRemaining} onDismiss={() => setIsTrialBannerVisible(false)} />
     )}
-    <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 animate-fade-in">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
         {/* Main Column */}
-        <div className="xl:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-6">
              <Card>
                  <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-4">
                     <h2 className="text-xl font-bold text-slate-900 dark:text-white">7-Day Nutrition Plan</h2>
-                     <div className="flex items-center gap-2">
-                        {trialDaysRemaining !== null && (
-                            <div className="text-sm font-semibold bg-slate-200 dark:bg-slate-700 px-3 py-1 rounded-full">
-                                {trialDaysRemaining} days left in trial
-                            </div>
-                        )}
+                     <div className="flex items-center gap-2 flex-wrap">
                         {dietPhase === DietPhase.REVERSE_DIETING && dietPace && (
                             <span className="px-3 py-1 text-xs font-medium rounded-full bg-brand/10 text-brand dark:bg-brand/20 dark:text-brand-light">
                                 {dietPace} Pace
@@ -310,7 +305,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
         
         {/* Side Column */}
-        <div className="xl:col-span-1 space-y-6">
+        <div className="lg:col-span-1 space-y-6">
              <UsageCard usageData={usageData} />
              <DailyCoachingTipComponent tip={dailyTip} isLoading={isTipLoading} onGetNewTip={onGetNewTip} />
              <DailyMealLogDisplay todayLog={todayLog} onStartMealLogger={onStartMealLogger} />
@@ -331,7 +326,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
 
         {/* Full width bottom section */}
-        <div className="xl:col-span-3 flex flex-col sm:flex-row sm:justify-center gap-4 py-4">
+        <div className="lg:col-span-3 flex flex-col sm:flex-row sm:justify-center gap-4 py-4">
             {dietPhase === DietPhase.FAT_LOSS && !isDietBreak && (
                 <Button onClick={onStartDietBreak} variant="secondary" className="w-full sm:w-auto">
                     Take a 1-Week Diet Break
@@ -342,7 +337,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </Button>
         </div>
 
-        <Card className="xl:col-span-3">
+        <Card className="lg:col-span-3">
             <h2 className="font-display text-xl font-bold text-slate-900 dark:text-white uppercase mb-4">Check-In History</h2>
             {history.length > 0 ? (
                 <ul className="space-y-4">
