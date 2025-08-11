@@ -42,8 +42,13 @@ export const getUserUsageData = async (userId: string): Promise<UsageData> => {
         const usageDocRef = doc(db, 'users', userId, 'usage', 'main');
         const usageDocSnap = await getDoc(usageDocRef);
         if (usageDocSnap.exists()) {
-            // TODO: Add logic to check and reset counts based on resetsOn date
-            return usageDocSnap.data() as UsageData;
+            const usageData = usageDocSnap.data() as UsageData;
+            // Migration for existing users who don't have a trial start date
+            if (!usageData.trialStartedAt) {
+                usageData.trialStartedAt = new Date().toISOString();
+                await setDoc(usageDocRef, { trialStartedAt: usageData.trialStartedAt }, { merge: true });
+            }
+            return usageData;
         } else {
             // Create default usage data if it doesn't exist
             const now = new Date();
