@@ -646,6 +646,7 @@ const App: React.FC = () => {
                 isRecipeSaved={isRecipeSaved}
                 trialDaysRemaining={999} 
                 isAdmin={false}
+                usageData={usageData}
             />
         );
       case 'checkingIn':

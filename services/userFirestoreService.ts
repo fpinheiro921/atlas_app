@@ -37,14 +37,31 @@ export const loadUserDataFromFirestore = async (userId: string): Promise<SaveDat
   }
 };
 
-export const getUserUsageData = async (userId: string): Promise<UsageData | null> => {
+export const getUserUsageData = async (userId: string): Promise<UsageData> => {
     try {
         const usageDocRef = doc(db, 'users', userId, 'usage', 'main');
         const usageDocSnap = await getDoc(usageDocRef);
         if (usageDocSnap.exists()) {
+            // TODO: Add logic to check and reset counts based on resetsOn date
             return usageDocSnap.data() as UsageData;
         } else {
-            return null;
+            // Create default usage data if it doesn't exist
+            const now = new Date();
+            const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+            const nextWeek = new Date(now.setDate(now.getDate() + 7));
+
+            const defaultUsage: UsageData = {
+                mealPlanGenerations: {
+                    count: 0,
+                    resetsOn: nextWeek.toISOString(),
+                },
+                mealPhotoLogs: {
+                    count: 0,
+                    resetsOn: nextMonth.toISOString(),
+                },
+            };
+            await setDoc(usageDocRef, defaultUsage);
+            return defaultUsage;
         }
     } catch (error) {
         console.error("Error loading user usage data from Firestore:", error);
