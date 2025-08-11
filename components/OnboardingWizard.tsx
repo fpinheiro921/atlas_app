@@ -1,13 +1,13 @@
 
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import type { OnboardingData } from '../types';
 import { Sex, DietHistory, OnboardingGoal, ReverseDietPace, LifestyleActivity, ExerciseActivity, TrainingExperience, TrainingFrequency, Equipment } from '../types';
 import { Card } from './Card';
 import { Button } from './Button';
 import { Input } from './Input';
 import { Select } from './Select';
-import { BodyFatEstimator } from './BodyFatEstimator';
+import { BodyFatEstimator, BodyFatEstimatorRef } from './BodyFatEstimator';
 
 interface OnboardingWizardProps {
   onComplete: (data: OnboardingData) => void;
@@ -49,6 +49,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
   const [formData, setFormData] = useState<OnboardingData>(initialFormData);
   const [formError, setFormError] = useState<string | null>(null);
   const [isEstimatingBfp, setIsEstimatingBfp] = useState(false);
+  const bodyFatEstimatorRef = useRef<BodyFatEstimatorRef>(null);
   
   const totalSteps = 6;
 
@@ -91,8 +92,20 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
     });
   };
   
-  const handleNext = () => setStep(prev => Math.min(prev + 1, totalSteps - 1));
-  const handleBack = () => setStep(prev => Math.max(prev - 1, 0));
+  const handleNext = () => {
+      if (isEstimatingBfp) {
+          bodyFatEstimatorRef.current?.submit();
+      } else {
+          setStep(prev => Math.min(prev + 1, totalSteps - 1));
+      }
+  };
+  const handleBack = () => {
+      if (isEstimatingBfp) {
+          setIsEstimatingBfp(false);
+      } else {
+          setStep(prev => Math.max(prev - 1, 0));
+      }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -137,20 +150,28 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
             <p className="text-slate-600 dark:text-slate-400">Your weight and body fat percentage are key to accurate macro targets.</p>
             <Input id="weight" label="Weight (kg)" type="number" step="0.1" value={formData.weight} onChange={handleChange} required />
             <Input id="bodyFat" label="Body Fat (%)" type="number" step="0.1" value={formData.bodyFat} onChange={handleChange} required />
-            <div className="text-center">
-                <p className="text-sm text-slate-500 dark:text-slate-400 my-4">OR</p>
-                <Button variant="outline" onClick={() => setIsEstimatingBfp(true)}>Estimate with AI + Tape Measure</Button>
+            <div className="text-center my-4">
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">OR</p>
+                <div 
+                    onClick={() => setIsEstimatingBfp(true)}
+                    className="cursor-pointer rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-600 p-4 text-center hover:border-brand dark:hover:border-brand-dark transition-colors"
+                >
+                    <span className="material-symbols-outlined text-4xl text-brand dark:text-brand-dark">neurology</span>
+                    <p className="font-semibold text-slate-800 dark:text-slate-200 mt-2">Estimate with AI + Tape Measure</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">Get a more accurate reading using our AI-powered tool.</p>
+                </div>
             </div>
           </div>
         )}
 
         {step === 1 && isEstimatingBfp && (
             <BodyFatEstimator 
+                ref={bodyFatEstimatorRef}
                 onComplete={(bfp) => {
                     setFormData({ ...formData, bodyFat: bfp });
                     setIsEstimatingBfp(false);
+                    handleNext();
                 }}
-                onBack={() => setIsEstimatingBfp(false)}
             />
         )}
 
@@ -287,7 +308,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
             <div>
                 {step < totalSteps - 1 ? (
                     <Button type="button" onClick={handleNext}>
-                        Continue
+                        {isEstimatingBfp ? 'Calculate & Continue' : 'Continue'}
                     </Button>
                 ) : (
                     <Button type="submit">

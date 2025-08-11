@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useImperativeHandle, forwardRef } from 'react';
 import { Sex } from '../types';
 import { getAIBodyFatEstimation } from '../services/geminiService';
 import { Button } from './Button';
@@ -21,10 +21,13 @@ const FEMALE_FORMULA_CONSTANTS = {
 
 interface BodyFatEstimatorProps {
     onComplete: (bodyFat: number) => void;
-    onBack: () => void;
 }
 
-export const BodyFatEstimator: React.FC<BodyFatEstimatorProps> = ({ onComplete, onBack }) => {
+export interface BodyFatEstimatorRef {
+    submit: () => void;
+}
+
+export const BodyFatEstimator = forwardRef<BodyFatEstimatorRef, BodyFatEstimatorProps>(({ onComplete }, ref) => {
     const [sex, setSex] = useState<Sex>(Sex.MALE);
     const [height, setHeight] = useState('');
     const [neck, setNeck] = useState('');
@@ -34,6 +37,10 @@ export const BodyFatEstimator: React.FC<BodyFatEstimatorProps> = ({ onComplete, 
     const [sidePhoto, setSidePhoto] = useState<File | null>(null);
     const [status, setStatus] = useState<'idle' | 'processing' | 'error'>('idle');
     const [error, setError] = useState<string | null>(null);
+
+    useImperativeHandle(ref, () => ({
+        submit: handleSubmit,
+    }));
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'front' | 'side') => {
         const file = e.target.files?.[0];
@@ -124,23 +131,23 @@ export const BodyFatEstimator: React.FC<BodyFatEstimatorProps> = ({ onComplete, 
     };
 
     return (
-        <div className="p-4">
-            <h3 className="text-lg font-semibold mb-4">Estimate Body Fat</h3>
+        <div className="p-4 animate-fade-in">
+            <h3 className="text-lg font-semibold mb-4 text-center">Estimate Body Fat</h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                    <h4 className="font-semibold mb-2">Upload Photos</h4>
-                    <div className="mb-2">
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Front View</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                <div className="space-y-4">
+                    <h4 className="font-semibold text-slate-800 dark:text-slate-200">Upload Photos</h4>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Front View</label>
                         <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'front')} className="mt-1 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-light file:text-brand dark:file:bg-brand-dark dark:file:text-white hover:file:bg-brand-accent" />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Side View</label>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Side View</label>
                         <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'side')} className="mt-1 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-light file:text-brand dark:file:bg-brand-dark dark:file:text-white hover:file:bg-brand-accent" />
                     </div>
                 </div>
-                <div>
-                    <h4 className="font-semibold mb-2">Enter Measurements (cm)</h4>
+                <div className="space-y-4">
+                    <h4 className="font-semibold text-slate-800 dark:text-slate-200">Enter Measurements (cm)</h4>
                     <Select label="Sex" value={sex} onChange={(e) => setSex(e.target.value as Sex)}>
                         <option value={Sex.MALE}>Male</option>
                         <option value={Sex.FEMALE}>Female</option>
@@ -154,14 +161,8 @@ export const BodyFatEstimator: React.FC<BodyFatEstimatorProps> = ({ onComplete, 
                 </div>
             </div>
 
-            {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-
-            <div className="flex justify-between">
-                <Button onClick={onBack} variant="secondary">Back</Button>
-                <Button onClick={handleSubmit} disabled={status === 'processing'}>
-                    {status === 'processing' ? <Spinner /> : 'Calculate'}
-                </Button>
-            </div>
+            {error && <p className="text-red-500 text-sm text-center mb-4">{error}</p>}
+            {status === 'processing' && <div className="flex justify-center"><Spinner /></div>}
         </div>
     );
-};
+});
