@@ -582,26 +582,6 @@ ${getKnowledgeBasePrompt()}
     };
 };
 
-export const createChat = (onboardingData: OnboardingData, checkInData: CheckInData, history: CheckInRecord[]): Chat => {
-    const systemInstruction = `You are 'Atlas', an expert metabolic coach. Your personality is evidence-based, empowering, and precise. You have access to the user's full profile and history to provide contextual answers. Do not ask for information you already have. Your responses MUST be based on the principles outlined in the knowledge base provided below.
-
-${getKnowledgeBasePrompt()}
-
-# User Context (DO NOT repeat this back to the user):
-- Onboarding Data: ${JSON.stringify(onboardingData)}
-- Current Plan: ${JSON.stringify(checkInData)}
-- Recent History: ${JSON.stringify(history.slice(0, 5))}
-`;
-
-    const chat = ai.chats.create({
-        model: 'gemini-2.5-flash',
-        config: {
-            systemInstruction,
-        },
-    });
-    return chat;
-};
-
 export const getMealMacrosFromImage = async (base64Image: string): Promise<MealAnalysis> => {
     const systemInstruction = `You are a food analysis expert. Your task is to analyze an image of a meal and provide an estimated breakdown of its macronutrients (calories, protein, carbs, fat). Be as accurate as possible, stating your portion size assumptions in the rationale. Your response MUST be a single JSON object conforming to the schema.`;
     const prompt = `Analyze the meal in this image and provide your best estimate for its nutritional content.`;

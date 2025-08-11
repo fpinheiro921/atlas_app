@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { OnboardingData, CheckInData, CheckInRecord, PlanWeek, TrainingPlan, WorkoutLog, WorkoutDay, DailyMealLog, MealPlan, AppView, DailyCoachingTip, DailyMacros } from '../types';
+import type { OnboardingData, CheckInData, CheckInRecord, PlanWeek, TrainingPlan, WorkoutLog, WorkoutDay, DailyMealLog, MealPlan, AppView, DailyCoachingTip, DailyMacros, UsageData } from '../types';
 import { DietPhase } from '../types';
 import { Card } from './Card';
 import { Button } from './Button';
@@ -11,6 +11,7 @@ import { WorkoutPlan } from './WorkoutPlan';
 import { MealPlanDisplay } from './MealPlanDisplay';
 import { DailyMealLogDisplay } from './DailyMealLogDisplay';
 import { DailyCoachingTip as DailyCoachingTipComponent } from './DailyCoachingTip';
+import { UsageCard } from './UsageCard';
 
 interface DashboardProps {
   onboardingData: OnboardingData | null;
@@ -38,6 +39,7 @@ interface DashboardProps {
   isRecipeSaved: (recipeName: string) => boolean;
   trialDaysRemaining: number;
   isAdmin: boolean;
+  usageData: UsageData | null;
 }
 
 const TrialBanner: React.FC<{days: number; onDismiss: () => void}> = ({days, onDismiss}) => (
@@ -176,6 +178,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     isRecipeSaved,
     trialDaysRemaining,
     isAdmin,
+    usageData,
 }) => {
   const [isTrialBannerVisible, setIsTrialBannerVisible] = useState(true);
 
@@ -303,6 +306,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         
         {/* Side Column */}
         <div className="xl:col-span-1 space-y-6">
+             <UsageCard usageData={usageData} />
              <DailyCoachingTipComponent tip={dailyTip} isLoading={isTipLoading} onGetNewTip={onGetNewTip} />
              <DailyMealLogDisplay todayLog={todayLog} onStartMealLogger={onStartMealLogger} />
             

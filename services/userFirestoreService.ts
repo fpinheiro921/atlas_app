@@ -1,6 +1,6 @@
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from './firebase';
-import type { SaveData } from '../types';
+import type { SaveData, UsageData } from '../types';
 import { isSaveData } from '../types';
 
 export const saveUserDataToFirestore = async (userId: string, data: Omit<SaveData, 'version'>): Promise<void> => {
@@ -35,4 +35,29 @@ export const loadUserDataFromFirestore = async (userId: string): Promise<SaveDat
     console.error("Error loading user data from Firestore:", error);
     throw new Error("Could not load user data.");
   }
+};
+
+export const getUserUsageData = async (userId: string): Promise<UsageData | null> => {
+    try {
+        const usageDocRef = doc(db, 'users', userId, 'usage', 'main');
+        const usageDocSnap = await getDoc(usageDocRef);
+        if (usageDocSnap.exists()) {
+            return usageDocSnap.data() as UsageData;
+        } else {
+            return null;
+        }
+    } catch (error) {
+        console.error("Error loading user usage data from Firestore:", error);
+        throw new Error("Could not load user usage data.");
+    }
+};
+
+export const updateUserUsageData = async (userId: string, data: Partial<UsageData>): Promise<void> => {
+    try {
+        const usageDocRef = doc(db, 'users', userId, 'usage', 'main');
+        await setDoc(usageDocRef, data, { merge: true });
+    } catch (error) {
+        console.error("Error updating user usage data in Firestore:", error);
+        throw new Error("Could not update user usage data.");
+    }
 };

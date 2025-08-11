@@ -1,5 +1,3 @@
-
-
 export enum UnitSystem {
   ORIGINAL = 'Original',
   METRIC = 'Grams',
@@ -235,12 +233,6 @@ export interface GroundingSource {
     };
 }
 
-export interface ChatMessage {
-    role: 'user' | 'model';
-    parts: { text: string }[];
-    timestamp: number;
-}
-
 export interface MealAnalysis {
     mealName: string;
     calories: number;
@@ -371,6 +363,17 @@ export interface AIBodyFatEstimation {
     };
     ai_visual_body_fat_estimate_percent: number;
     confidence_score: 'High' | 'Medium' | 'Low';
+}
+
+export interface UsageData {
+    mealPlanGenerations: {
+        count: number;
+        resetsOn: string;
+    };
+    mealPhotoLogs: {
+        count: number;
+        resetsOn: string;
+    };
 }
 
 export interface SaveData {

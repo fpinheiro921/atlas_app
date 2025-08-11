@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import type { CheckInData, AIRecommendation, AppStatus, OnboardingData, SaveData, AppView, CheckInRecord, PlanWeek, Article, TrainingPlan, WorkoutLog, WorkoutDay, GroundingSource, Supplement, ChatMessage, MealAnalysis, DailyMealLog, MealPlan, ShoppingList, DailyCoachingTip, Meal, MonthlyReviewReport, ProgressPhoto } from './types';
+import type { CheckInData, AIRecommendation, AppStatus, OnboardingData, SaveData, AppView, CheckInRecord, PlanWeek, Article, TrainingPlan, WorkoutLog, WorkoutDay, GroundingSource, Supplement, MealAnalysis, DailyMealLog, MealPlan, ShoppingList, DailyCoachingTip, Meal, MonthlyReviewReport, ProgressPhoto, UsageData } from './types';
 import { isSaveData, OnboardingGoal, Sex, MenstrualCyclePhase, DietPhase, ReverseDietPace } from './types';
-import { getAIRecommendation, reforecastFatLossPlan, generateInitialPlansAndRoadmap, createChat, generateShoppingList, getDailyCoachingTip, generateMonthlyReview, generateOrModifyRecipe, generateWeeklyMealPlan, getMealMacrosFromImage } from './services/geminiService';
+import { getAIRecommendation, reforecastFatLossPlan, generateInitialPlansAndRoadmap, generateShoppingList, getDailyCoachingTip, generateMonthlyReview, generateOrModifyRecipe, generateWeeklyMealPlan, getMealMacrosFromImage } from './services/geminiService';
 import { calculateDietBreakPlan } from './services/userProfileService';
 import { CheckInForm } from './components/CheckInForm';
 import { RecommendationDisplay } from './components/RecommendationDisplay';
@@ -21,11 +21,8 @@ import { SupplementModal } from './components/SupplementModal';
 import { ProgressView } from './components/ProgressView';
 import { dummySaveData } from './dummyData';
 import { Button } from './components/Button';
-import { FloatingActionButton } from './components/FloatingActionButton';
-import { ChatWindow } from './components/ChatWindow';
 import { MealLogger } from './components/MealLogger';
 import { MealPlanView } from './components/MealPlanView';
-import type { Chat } from '@google/genai';
 import { LandingPage } from './components/LandingPage';
 import { ShoppingListModal } from './components/ShoppingListModal';
 import { ExerciseGuideModal } from './components/ExerciseGuideModal';
@@ -34,7 +31,7 @@ import { RecipeView } from './components/RecipeView';
 import { MonthlyReviewModal } from './components/MonthlyReviewModal';
 import { WorkoutReviewModal } from './components/WorkoutReviewModal';
 import { GoalSwitcherModal } from './components/GoalSwitcherModal';
-import { saveUserDataToFirestore, loadUserDataFromFirestore } from './services/userFirestoreService';
+import { saveUserDataToFirestore, loadUserDataFromFirestore, getUserUsageData, updateUserUsageData } from './services/userFirestoreService';
 
 const ErrorDisplay: React.FC<{ message: string; onRetry: () => void }> = ({ message, onRetry }) => (
     <Card className="text-center">
@@ -99,6 +96,7 @@ const App: React.FC = () => {
   const [isSupplementLibraryOpen, setIsSupplementLibraryOpen] = useState(false);
   const [isMealLoggerOpen, setIsMealLoggerOpen] = useState(false);
   const isInitialLoad = useRef(true);
+  const [usageData, setUsageData] = useState<UsageData | null>(null);
   
   // Daily Tip state
   const [dailyTip, setDailyTip] = useState<DailyCoachingTip | null>(null);
@@ -129,6 +127,8 @@ const App: React.FC = () => {
           } else {
             setView('onboarding');
           }
+          const usage = await getUserUsageData(user.uid);
+          setUsageData(usage);
         } catch (err) {
           setError('Could not load your data. Please try again.');
         } finally {
@@ -165,12 +165,6 @@ const App: React.FC = () => {
     }
   }, [user, view, onboardingData, checkInData, history, planOverview, planSources, readArticleIds, trainingPlan, workoutLogs, loggedMeals, mealPlan, dailyTip, savedRecipes, progressPhotos]);
   
-  // Chat state
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [chatSession, setChatSession] = useState<Chat | null>(null);
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  const [isChatLoading, setIsChatLoading] = useState(false);
-
   // Shopping List state
   const [shoppingList, setShoppingList] = useState<ShoppingList | null>(null);
   const [shoppingListStatus, setShoppingListStatus] = useState<AppStatus>('idle');
@@ -207,8 +201,6 @@ const App: React.FC = () => {
         setLoggedMeals([]);
         setProgressPhotos([]);
         setDailyTip(null);
-        setChatSession(null);
-        setChatMessages([]);
     }
   }, []);
   
@@ -517,58 +509,6 @@ const App: React.FC = () => {
     setView('dashboard');
   };
 
-  const handleToggleChat = () => {
-    if (!isChatOpen && !chatSession) {
-      if (!onboardingData || !checkInData) return;
-      
-      const initialBotMessage: ChatMessage = {
-          role: 'model',
-          parts: [{ text: "Hi! I'm Atlas, your AI coach. I have your full profile and plan context. Feel free to ask me anything about your plan, nutrition, or training." }],
-          timestamp: Date.now()
-      };
-      const newChatSession = createChat(onboardingData, checkInData, history);
-      setChatSession(newChatSession);
-      setChatMessages([initialBotMessage]);
-    }
-    setIsChatOpen(prev => !prev);
-  };
-
-  const handleSendMessage = async (messageText: string) => {
-      if (!chatSession || !messageText.trim()) return;
-
-      const userMessage: ChatMessage = {
-          role: 'user',
-          parts: [{ text: messageText }],
-          timestamp: Date.now()
-      };
-      
-      setChatMessages(prev => [...prev, userMessage, { role: 'model', parts: [{ text: '' }], timestamp: Date.now() + 1 }]);
-      setIsChatLoading(true);
-
-      try {
-          const stream = await chatSession.sendMessageStream({ message: messageText });
-          for await (const chunk of stream) {
-              const chunkText = chunk.text;
-              setChatMessages(prev => {
-                  const newMessages = [...prev];
-                  const lastMessage = newMessages[newMessages.length - 1];
-                  lastMessage.parts[0].text += chunkText;
-                  return newMessages;
-              });
-          }
-      } catch (e) {
-          console.error("Chat error:", e);
-          setChatMessages(prev => {
-              const newMessages = [...prev];
-              const lastMessage = newMessages[newMessages.length - 1];
-              lastMessage.parts[0].text = "Sorry, I encountered an error. Please try again.";
-              return newMessages;
-          });
-      } finally {
-          setIsChatLoading(false);
-      }
-  };
-
   const handleGenerateShoppingList = async () => {
     if (!mealPlan) return;
     setShoppingListStatus('loading');
@@ -845,26 +785,6 @@ const App: React.FC = () => {
                 onClose={() => setIsMealLoggerOpen(false)}
                 onLogMeal={handleLogMeal}
             />
-        )}
-        {onboardingData && checkInData && (
-            <>
-                <FloatingActionButton onClick={handleToggleChat} />
-                {isChatOpen && (
-                    <ChatWindow 
-                        messages={chatMessages}
-                        onSendMessage={handleSendMessage}
-                        isLoading={isChatLoading}
-                        onClose={handleToggleChat}
-                        onClearChat={() => {
-                            if (window.confirm("Are you sure you want to clear this chat history?")) {
-                                handleToggleChat(); // Close and reset
-                                setChatSession(null);
-                                setChatMessages([]);
-                            }
-                        }}
-                    />
-                )}
-            </>
         )}
         {isShoppingListModalOpen && (
             <ShoppingListModal list={shoppingList} status={shoppingListStatus} onClose={() => setIsShoppingListModalOpen(false)} />
