@@ -51,14 +51,15 @@ export const getUserUsageData = async (userId: string): Promise<UsageData> => {
             const nextWeek = new Date(now.setDate(now.getDate() + 7));
 
             const defaultUsage: UsageData = {
-                mealPlanGenerations: {
-                    count: 0,
-                    resetsOn: nextWeek.toISOString(),
-                },
-                mealPhotoLogs: {
-                    count: 0,
-                    resetsOn: nextMonth.toISOString(),
-                },
+                trialStartedAt: new Date().toISOString(),
+                mealPlanGenerations: { count: 0, resetsOn: nextWeek.toISOString() },
+                mealPhotoLogs: { count: 0, resetsOn: nextMonth.toISOString() },
+                weeklyCheckIns: { count: 0, resetsOn: nextMonth.toISOString() },
+                dailyCoachingTips: { count: 0, resetsOn: nextMonth.toISOString() },
+                recipeGenerations: { count: 0, resetsOn: nextMonth.toISOString() },
+                shoppingListGenerations: { count: 0, resetsOn: nextMonth.toISOString() },
+                monthlyReviews: { count: 0, resetsOn: nextMonth.toISOString() },
+                goalTransitionPlans: { count: 0, resetsOn: nextMonth.toISOString() },
             };
             await setDoc(usageDocRef, defaultUsage);
             return defaultUsage;

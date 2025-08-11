@@ -200,33 +200,43 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             <p className="font-semibold text-brand uppercase">Simple, Transparent Pricing</p>
             <h2 className="mt-2 text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white">One Plan. Unlimited Results.</h2>
           </div>
-          <div className="mt-12 max-w-lg mx-auto">
-            <Card className="border-2 border-brand shadow-2xl shadow-brand/10">
+          <div className="mt-12 grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <Card className="border-2 border-slate-300 dark:border-slate-700">
                 <div className="text-center">
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">Atlas Full Access</h3>
-                    <p className="mt-1 text-slate-600 dark:text-slate-400">Everything you need to transform your body and never hit a plateau again.</p>
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">Monthly</h3>
+                    <p className="mt-1 text-slate-600 dark:text-slate-400">Flexible, cancel anytime.</p>
                 </div>
                 <div className="mt-6 mb-8 flex justify-center items-baseline gap-2">
                     <span className="font-display text-5xl font-extrabold text-slate-900 dark:text-white">$19</span>
                     <span className="text-xl text-slate-500 dark:text-slate-400">/ month</span>
                 </div>
                 <ul className="space-y-3">
-                    <li className="flex items-center gap-3"><span className="material-symbols-outlined text-green-500">check_circle</span> <div><span className="font-semibold text-slate-800 dark:text-slate-200">Unlimited</span> Dynamic Weekly AI Coaching</div></li>
-                    <li className="flex items-center gap-3"><span className="material-symbols-outlined text-green-500">check_circle</span> <div><span className="font-semibold text-slate-800 dark:text-slate-200">Unlimited</span> AI Photo Meal Logs</div></li>
-                    <li className="flex items-center gap-3"><span className="material-symbols-outlined text-green-500">check_circle</span> <div><span className="font-semibold text-slate-800 dark:text-slate-200">Unlimited</span> 24/7 AI Chat Coach Access</div></li>
-                    <li className="flex items-center gap-3"><span className="material-symbols-outlined text-green-500">check_circle</span> Personalized Training & AI Meal Planner</li>
-                    <li className="flex items-center gap-3"><span className="material-symbols-outlined text-green-500">check_circle</span> Full Progress Tracking & Education Library</li>
+                    <li className="flex items-center gap-3"><span className="material-symbols-outlined text-green-500">check_circle</span> 5 Weekly AI Check-ins</li>
+                    <li className="flex items-center gap-3"><span className="material-symbols-outlined text-green-500">check_circle</span> 50 AI Photo Meal Logs</li>
+                    <li className="flex items-center gap-3"><span className="material-symbols-outlined text-green-500">check_circle</span> 31 Daily Coaching Tips</li>
+                    <li className="flex items-center gap-3"><span className="material-symbols-outlined text-green-500">check_circle</span> 15 Recipe Generations</li>
                 </ul>
-                <Button onClick={onGetStarted} size="lg" className="w-full mt-8">Start My Transformation</Button>
-                <div className="text-center mt-4">
-                    <p className="font-semibold text-sm">
-                        Or save 17% with our{' '}
-                        <button onClick={onGetStarted} className="text-brand hover:underline focus:outline-none">
-                            Best Value Plan
-                        </button>
-                        {' '}— $199 per year.
-                    </p>
+                <Button onClick={onGetStarted} size="lg" className="w-full mt-8" variant="secondary">Choose Monthly</Button>
+            </Card>
+            <Card className="border-2 border-brand shadow-2xl shadow-brand/10 relative">
+                <div className="absolute top-0 -translate-y-1/2 left-1/2 -translate-x-1/2">
+                    <div className="bg-brand text-white px-4 py-1 text-sm font-bold rounded-full uppercase">Best Value</div>
                 </div>
+                <div className="text-center">
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">Annual</h3>
+                    <p className="mt-1 text-slate-600 dark:text-slate-400">Save 17% with yearly billing.</p>
+                </div>
+                <div className="mt-6 mb-8 flex justify-center items-baseline gap-2">
+                    <span className="font-display text-5xl font-extrabold text-slate-900 dark:text-white">$199</span>
+                    <span className="text-xl text-slate-500 dark:text-slate-400">/ year</span>
+                </div>
+                <ul className="space-y-3">
+                    <li className="flex items-center gap-3"><span className="material-symbols-outlined text-green-500">check_circle</span> 5 Weekly AI Check-ins</li>
+                    <li className="flex items-center gap-3"><span className="material-symbols-outlined text-green-500">check_circle</span> 50 AI Photo Meal Logs</li>
+                    <li className="flex items-center gap-3"><span className="material-symbols-outlined text-green-500">check_circle</span> 31 Daily Coaching Tips</li>
+                    <li className="flex items-center gap-3"><span className="material-symbols-outlined text-green-500">check_circle</span> 15 Recipe Generations</li>
+                </ul>
+                <Button onClick={onGetStarted} size="lg" className="w-full mt-8">Choose Annual</Button>
             </Card>
             <div className="mt-10 text-center">
                 <div className="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-lg inline-block text-sm">

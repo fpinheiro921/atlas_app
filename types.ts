@@ -366,14 +366,15 @@ export interface AIBodyFatEstimation {
 }
 
 export interface UsageData {
-    mealPlanGenerations: {
-        count: number;
-        resetsOn: string;
-    };
-    mealPhotoLogs: {
-        count: number;
-        resetsOn: string;
-    };
+    trialStartedAt: string | null;
+    mealPlanGenerations: { count: number; resetsOn: string; };
+    mealPhotoLogs: { count: number; resetsOn: string; };
+    weeklyCheckIns: { count: number; resetsOn: string; };
+    dailyCoachingTips: { count: number; resetsOn: string; };
+    recipeGenerations: { count: number; resetsOn: string; };
+    shoppingListGenerations: { count: number; resetsOn: string; };
+    monthlyReviews: { count: number; resetsOn: string; };
+    goalTransitionPlans: { count: number; resetsOn: string; };
 }
 
 export interface SaveData {
@@ -392,6 +393,7 @@ export interface SaveData {
     dailyTip: DailyCoachingTip | null;
     savedRecipes?: Meal[];
     progressPhotos?: ProgressPhoto[];
+    usageData?: UsageData;
 }
 
 
@@ -645,6 +647,19 @@ export const isGoalTransitionPlan = (obj: any): obj is GoalTransitionPlan => {
     );
 };
 
+export const isUsageData = (obj: any): obj is UsageData => {
+    return obj &&
+        (obj.trialStartedAt === null || typeof obj.trialStartedAt === 'string') &&
+        obj.mealPlanGenerations && typeof obj.mealPlanGenerations.count === 'number' && typeof obj.mealPlanGenerations.resetsOn === 'string' &&
+        obj.mealPhotoLogs && typeof obj.mealPhotoLogs.count === 'number' && typeof obj.mealPhotoLogs.resetsOn === 'string' &&
+        obj.weeklyCheckIns && typeof obj.weeklyCheckIns.count === 'number' && typeof obj.weeklyCheckIns.resetsOn === 'string' &&
+        obj.dailyCoachingTips && typeof obj.dailyCoachingTips.count === 'number' && typeof obj.dailyCoachingTips.resetsOn === 'string' &&
+        obj.recipeGenerations && typeof obj.recipeGenerations.count === 'number' && typeof obj.recipeGenerations.resetsOn === 'string' &&
+        obj.shoppingListGenerations && typeof obj.shoppingListGenerations.count === 'number' && typeof obj.shoppingListGenerations.resetsOn === 'string' &&
+        obj.monthlyReviews && typeof obj.monthlyReviews.count === 'number' && typeof obj.monthlyReviews.resetsOn === 'string' &&
+        obj.goalTransitionPlans && typeof obj.goalTransitionPlans.count === 'number' && typeof obj.goalTransitionPlans.resetsOn === 'string';
+};
+
 export const isSaveData = (obj: any): obj is SaveData => {
     return !!obj &&
         (obj.version === undefined || typeof obj.version === 'number') &&
@@ -661,5 +676,6 @@ export const isSaveData = (obj: any): obj is SaveData => {
         (obj.mealPlan === null || isMealPlan(obj.mealPlan)) &&
         (obj.dailyTip === null || isDailyCoachingTip(obj.dailyTip)) &&
         (obj.savedRecipes === undefined || (Array.isArray(obj.savedRecipes) && obj.savedRecipes.every(isMeal))) &&
-        (obj.progressPhotos === undefined || (Array.isArray(obj.progressPhotos) && obj.progressPhotos.every(isProgressPhoto)));
+        (obj.progressPhotos === undefined || (Array.isArray(obj.progressPhotos) && obj.progressPhotos.every(isProgressPhoto))) &&
+        (obj.usageData === undefined || isUsageData(obj.usageData));
 };

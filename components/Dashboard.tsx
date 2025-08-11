@@ -37,7 +37,7 @@ interface DashboardProps {
   onNavigate: (view: AppView) => void;
   onGenerateShoppingList: () => void;
   isRecipeSaved: (recipeName: string) => boolean;
-  trialDaysRemaining: number;
+  trialDaysRemaining: number | null;
   isAdmin: boolean;
   usageData: UsageData | null;
 }
@@ -251,7 +251,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   return (
     <>
-    {!isAdmin && trialDaysRemaining <= 7 && isTrialBannerVisible && (
+    {!isAdmin && trialDaysRemaining !== null && trialDaysRemaining <= 7 && isTrialBannerVisible && (
         <TrialBanner days={trialDaysRemaining} onDismiss={() => setIsTrialBannerVisible(false)} />
     )}
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 animate-fade-in">
@@ -261,6 +261,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
                  <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-4">
                     <h2 className="text-xl font-bold text-slate-900 dark:text-white">7-Day Nutrition Plan</h2>
                      <div className="flex items-center gap-2">
+                        {trialDaysRemaining !== null && (
+                            <div className="text-sm font-semibold bg-slate-200 dark:bg-slate-700 px-3 py-1 rounded-full">
+                                {trialDaysRemaining} days left in trial
+                            </div>
+                        )}
                         {dietPhase === DietPhase.REVERSE_DIETING && dietPace && (
                             <span className="px-3 py-1 text-xs font-medium rounded-full bg-brand/10 text-brand dark:bg-brand/20 dark:text-brand-light">
                                 {dietPace} Pace

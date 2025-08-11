@@ -31,6 +31,7 @@ import { RecipeView } from './components/RecipeView';
 import { MonthlyReviewModal } from './components/MonthlyReviewModal';
 import { WorkoutReviewModal } from './components/WorkoutReviewModal';
 import { GoalSwitcherModal } from './components/GoalSwitcherModal';
+import { TrialExpired } from './components/TrialExpired';
 import { saveUserDataToFirestore, loadUserDataFromFirestore, getUserUsageData, updateUserUsageData } from './services/userFirestoreService';
 
 const ErrorDisplay: React.FC<{ message: string; onRetry: () => void }> = ({ message, onRetry }) => (
@@ -97,6 +98,7 @@ const App: React.FC = () => {
   const [isMealLoggerOpen, setIsMealLoggerOpen] = useState(false);
   const isInitialLoad = useRef(true);
   const [usageData, setUsageData] = useState<UsageData | null>(null);
+  const [trialDaysRemaining, setTrialDaysRemaining] = useState<number | null>(null);
   
   // Daily Tip state
   const [dailyTip, setDailyTip] = useState<DailyCoachingTip | null>(null);
@@ -139,6 +141,17 @@ const App: React.FC = () => {
     }
     isInitialLoad.current = false;
   }, [user]);
+
+  useEffect(() => {
+    if (usageData?.trialStartedAt) {
+      const trialStartDate = new Date(usageData.trialStartedAt);
+      const now = new Date();
+      const diffTime = now.getTime() - trialStartDate.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      const daysRemaining = 7 - diffDays;
+      setTrialDaysRemaining(daysRemaining < 0 ? 0 : daysRemaining);
+    }
+  }, [usageData]);
 
   useEffect(() => {
     if (!isInitialLoad.current && user) {
@@ -281,20 +294,22 @@ const App: React.FC = () => {
   }
 
   const handleNewCheckIn = useCallback(async (data: CheckInData) => {
-    setStatus('loading');
-    setError(null);
-    setCurrentRecommendation(null);
-    try {
-      const result = await getAIRecommendation(data, lastCheckInData, workoutLogs, trainingPlan, history);
-      setCurrentRecommendation(result);
-      if (result.recommendedArticleId) {
-        setReadArticleIds(prev => new Set(prev).add(result.recommendedArticleId!));
-      }
-      setStatus('success');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred.');
-      setStatus('error');
-    }
+    withUsageCheck('weeklyCheckIns', 5, async () => {
+        setStatus('loading');
+        setError(null);
+        setCurrentRecommendation(null);
+        try {
+          const result = await getAIRecommendation(data, lastCheckInData, workoutLogs, trainingPlan, history);
+          setCurrentRecommendation(result);
+          if (result.recommendedArticleId) {
+            setReadArticleIds(prev => new Set(prev).add(result.recommendedArticleId!));
+          }
+          setStatus('success');
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'An unknown error occurred.');
+          setStatus('error');
+        }
+    });
   }, [lastCheckInData, workoutLogs, trainingPlan, history]);
 
  const handleApplyChanges = async () => {
@@ -405,6 +420,7 @@ const App: React.FC = () => {
         dailyTip,
         savedRecipes,
         progressPhotos,
+        usageData: usageData || undefined,
     };
 
     const saveDataString = JSON.stringify(dataToSave, null, 2);
@@ -440,6 +456,7 @@ const App: React.FC = () => {
             setDailyTip(result.dailyTip || null);
             setSavedRecipes(result.savedRecipes || []);
             setProgressPhotos(result.progressPhotos || []);
+            setUsageData(result.usageData || null);
             setView(result.isOnboarded ? 'dashboard' : 'onboarding');
           } else {
             alert('Invalid or corrupted save file.');
@@ -494,9 +511,15 @@ const App: React.FC = () => {
     callback: () => Promise<void>
   ) => {
     if (!user || !usageData) return;
+    
+    if (trialDaysRemaining !== null && trialDaysRemaining <= 0) {
+        setError(`Your free trial has expired. Please upgrade to continue using this feature.`);
+        return;
+    }
 
     const now = new Date();
-    const currentUsage = usageData[usageType];
+    const currentUsage = usageData[usageType as keyof Omit<UsageData, 'trialStartedAt'>];
+
 
     if (new Date(currentUsage.resetsOn) < now) {
       currentUsage.count = 0;
@@ -553,31 +576,35 @@ const App: React.FC = () => {
 
   const handleGenerateShoppingList = async () => {
     if (!mealPlan) return;
-    setShoppingListStatus('loading');
-    setShoppingList(null);
-    setIsShoppingListModalOpen(true);
-    try {
-        const list = await generateShoppingList(mealPlan);
-        setShoppingList(list);
-        setShoppingListStatus('success');
-    } catch (e) {
-        console.error("Shopping list generation error:", e);
-        setShoppingListStatus('error');
-    }
+    withUsageCheck('shoppingListGenerations', 5, async () => {
+        setShoppingListStatus('loading');
+        setShoppingList(null);
+        setIsShoppingListModalOpen(true);
+        try {
+            const list = await generateShoppingList(mealPlan);
+            setShoppingList(list);
+            setShoppingListStatus('success');
+        } catch (e) {
+            console.error("Shopping list generation error:", e);
+            setShoppingListStatus('error');
+        }
+    });
   };
 
   const handleGetDailyTip = useCallback(async () => {
     if (!checkInData) return;
-    setIsTipLoading(true);
-    try {
-        const tip = await getDailyCoachingTip(checkInData, history);
-        setDailyTip(tip);
-    } catch (e) {
-        console.error("Failed to get daily tip:", e);
-        // Fail silently, don't show an error to the user for this feature
-    } finally {
-        setIsTipLoading(false);
-    }
+    withUsageCheck('dailyCoachingTips', 31, async () => {
+        setIsTipLoading(true);
+        try {
+            const tip = await getDailyCoachingTip(checkInData, history);
+            setDailyTip(tip);
+        } catch (e) {
+            console.error("Failed to get daily tip:", e);
+            // Fail silently, don't show an error to the user for this feature
+        } finally {
+            setIsTipLoading(false);
+        }
+    });
   }, [checkInData, history]);
 
   useEffect(() => {
@@ -638,12 +665,14 @@ const App: React.FC = () => {
   };
 
   const handleApplyNewGoalPlan = (newPlanData: CheckInData) => {
-    setCheckInData(newPlanData);
-    // If the goal is no longer fat loss, clear the roadmap.
-    if (newPlanData.dietPhase !== DietPhase.FAT_LOSS) {
-        setPlanOverview(null);
-    }
-    setIsGoalSwitcherOpen(false);
+    withUsageCheck('goalTransitionPlans', 2, async () => {
+        setCheckInData(newPlanData);
+        // If the goal is no longer fat loss, clear the roadmap.
+        if (newPlanData.dietPhase !== DietPhase.FAT_LOSS) {
+            setPlanOverview(null);
+        }
+        setIsGoalSwitcherOpen(false);
+    });
   };
 
   const viewTitles: Record<AppView, { title: string; subtitle: string }> = {
@@ -686,7 +715,7 @@ const App: React.FC = () => {
                 onNavigate={setView}
                 onGenerateShoppingList={handleGenerateShoppingList}
                 isRecipeSaved={isRecipeSaved}
-                trialDaysRemaining={999} 
+                trialDaysRemaining={trialDaysRemaining}
                 isAdmin={false}
                 usageData={usageData}
             />
@@ -758,6 +787,10 @@ const App: React.FC = () => {
   
   if (isAuthLoading) {
     return <Spinner text="Authenticating..." fullScreen />;
+  }
+
+  if (trialDaysRemaining === 0) {
+    return <TrialExpired />;
   }
 
   if (!user) {
