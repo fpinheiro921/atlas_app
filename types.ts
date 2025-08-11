@@ -361,6 +361,18 @@ export interface GoalTransitionPlan {
     updatedDietPhase: DietPhase;
 }
 
+export interface AIBodyFatEstimation {
+    image_quality_ok: boolean;
+    image_quality_issue_reason: string | null;
+    ai_estimated_measurements_cm: {
+        neck_circumference_cm: number;
+        waist_circumference_cm: number;
+        hip_circumference_cm: number | null;
+    };
+    ai_visual_body_fat_estimate_percent: number;
+    confidence_score: 'High' | 'Medium' | 'Low';
+}
+
 export interface SaveData {
     version?: number; // Added for future migrations
     isOnboarded: boolean;

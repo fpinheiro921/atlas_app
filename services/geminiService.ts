@@ -1,6 +1,6 @@
 import { GoogleGenAI, Type, GenerateContentResponse, Chat, Part } from "@google/genai";
-import { DietPhase, ReverseDietPace, Equipment } from '../types';
-import type { CheckInData, AIRecommendation, OnboardingData, PlanWeek, CheckInRecord, Article, TrainingPlan, WorkoutLog, GroundingSource, MealAnalysis, MealPlan, DailyMealLog, ShoppingList, DailyCoachingTip, Meal, MonthlyReviewReport, Exercise, WorkoutDay, GoalTransitionPlan } from '../types';
+import { DietPhase, ReverseDietPace, Equipment, Sex } from '../types';
+import type { CheckInData, AIRecommendation, OnboardingData, PlanWeek, CheckInRecord, Article, TrainingPlan, WorkoutLog, GroundingSource, MealAnalysis, MealPlan, DailyMealLog, ShoppingList, DailyCoachingTip, Meal, MonthlyReviewReport, Exercise, WorkoutDay, GoalTransitionPlan, AIBodyFatEstimation } from '../types';
 import { articles } from '../content/articles';
 import { supplements } from '../content/supplements';
 import { calculateInitialPlan, calculateDietBreakPlan } from "./userProfileService";
@@ -913,4 +913,76 @@ export const generateGoalTransitionPlan = async (
     });
 
     return JSON.parse(response.text) as GoalTransitionPlan;
+};
+
+export const getAIBodyFatEstimation = async (
+    frontPhoto: string,
+    sidePhoto: string,
+    gender: Sex,
+    heightCm: number
+): Promise<AIBodyFatEstimation> => {
+    const systemInstruction = `# ROLE AND GOAL
+You are an expert anthropometric analyst. Your task is to analyze two photographs of a person (front view and side view) to estimate their key body measurements and visually assess their body fat percentage. Your analysis will be used to validate user-provided measurements.
+
+# CONTEXT
+You will receive two images, the person's biological gender, and their height in centimeters. You must return your analysis in a structured JSON format. Pay close attention to the visual cues of body composition.
+
+# INSTRUCTIONS
+1.  Analyze the provided FRONT_VIEW_IMAGE and SIDE_VIEW_IMAGE.
+2.  First, assess the quality of the images. If they are low quality (e.g., very blurry, poor lighting, baggy clothes obscuring the body shape), set the "image_quality_ok" flag to false and provide a reason. Otherwise, set it to true.
+3.  If image quality is okay, proceed to estimate the following measurements in centimeters, based on the visual information and the provided height:
+    - neck_circumference_cm
+    - waist_circumference_cm
+4.  If the provided GENDER is "Female", you MUST also estimate:
+    - hip_circumference_cm
+5.  Based purely on the overall visual body composition from the images, provide a direct visual estimate of the body fat percentage.
+6.  Provide a confidence score ("High", "Medium", or "Low") for your measurement estimations.`;
+
+    const prompt = `# USER DATA
+- GENDER: ${gender}
+- HEIGHT_CM: ${heightCm}
+`;
+
+    const frontImagePart = {
+        inlineData: {
+            mimeType: 'image/jpeg',
+            data: frontPhoto.split(',')[1],
+        },
+    };
+    const sideImagePart = {
+        inlineData: {
+            mimeType: 'image/jpeg',
+            data: sidePhoto.split(',')[1],
+        },
+    };
+
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: [{ parts: [{ text: prompt }, frontImagePart, sideImagePart] }],
+        config: {
+            systemInstruction,
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    image_quality_ok: { type: Type.BOOLEAN },
+                    image_quality_issue_reason: { type: Type.STRING },
+                    ai_estimated_measurements_cm: {
+                        type: Type.OBJECT,
+                        properties: {
+                            neck_circumference_cm: { type: Type.NUMBER },
+                            waist_circumference_cm: { type: Type.NUMBER },
+                            hip_circumference_cm: { type: Type.NUMBER },
+                        },
+                        required: ['neck_circumference_cm', 'waist_circumference_cm']
+                    },
+                    ai_visual_body_fat_estimate_percent: { type: Type.NUMBER },
+                    confidence_score: { type: Type.STRING, enum: ['High', 'Medium', 'Low'] }
+                },
+                required: ['image_quality_ok', 'ai_estimated_measurements_cm', 'ai_visual_body_fat_estimate_percent', 'confidence_score']
+            },
+        }
+    });
+
+    return JSON.parse(response.text) as AIBodyFatEstimation;
 };

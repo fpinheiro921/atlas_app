@@ -7,6 +7,7 @@ import { Card } from './Card';
 import { Button } from './Button';
 import { Input } from './Input';
 import { Select } from './Select';
+import { BodyFatEstimator } from './BodyFatEstimator';
 
 interface OnboardingWizardProps {
   onComplete: (data: OnboardingData) => void;
@@ -47,6 +48,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
   const [step, setStep] = useState(0);
   const [formData, setFormData] = useState<OnboardingData>(initialFormData);
   const [formError, setFormError] = useState<string | null>(null);
+  const [isEstimatingBfp, setIsEstimatingBfp] = useState(false);
   
   const totalSteps = 6;
 
@@ -129,13 +131,27 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
           </div>
         )}
 
-        {step === 1 && (
+        {step === 1 && !isEstimatingBfp && (
           <div className="space-y-6 animate-fade-in">
             <h2 className="font-display text-2xl font-bold text-slate-900 dark:text-white uppercase">Step 2: Body Composition</h2>
             <p className="text-slate-600 dark:text-slate-400">Your weight and body fat percentage are key to accurate macro targets.</p>
             <Input id="weight" label="Weight (kg)" type="number" step="0.1" value={formData.weight} onChange={handleChange} required />
             <Input id="bodyFat" label="Body Fat (%)" type="number" step="0.1" value={formData.bodyFat} onChange={handleChange} required />
+            <div className="text-center">
+                <p className="text-sm text-slate-500 dark:text-slate-400 my-4">OR</p>
+                <Button variant="outline" onClick={() => setIsEstimatingBfp(true)}>Estimate with AI + Tape Measure</Button>
+            </div>
           </div>
+        )}
+
+        {step === 1 && isEstimatingBfp && (
+            <BodyFatEstimator 
+                onComplete={(bfp) => {
+                    setFormData({ ...formData, bodyFat: bfp });
+                    setIsEstimatingBfp(false);
+                }}
+                onBack={() => setIsEstimatingBfp(false)}
+            />
         )}
 
         {step === 2 && (
