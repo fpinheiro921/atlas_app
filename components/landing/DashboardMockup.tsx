@@ -10,7 +10,7 @@ const MacroTile: React.FC<{ label: string; value: string; unit: string; color: s
 
 export const DashboardMockup: React.FC = () => {
     return (
-        <div className="group relative transition-transform duration-500 ease-in-out transform md:rotate-3 md:hover:rotate-0 md:scale-100 hover:scale-105">
+        <div className="group relative transition-transform duration-500 ease-in-out transform md:hover:rotate-0 md:scale-100 hover:scale-105">
             <div className="absolute -inset-2 bg-gradient-to-br from-brand to-accent rounded-card opacity-20 group-hover:opacity-40 blur-xl transition-all duration-500"></div>
             <div className="relative bg-slate-800/80 backdrop-blur-xl rounded-card shadow-2xl shadow-black/40 border border-white/10 overflow-hidden">
                 {/* Window Header */}
